@@ -44,9 +44,9 @@ export function SimulationCard({ sim }: { sim: Simulation }) {
 
     const xMin = sim.xMin ?? -10;
     const xMax = sim.xMax ?? 10;
-    const a = vals.a ?? 1;
-    const b = vals.b ?? 1;
-    const c = vals.c ?? 1;
+    const a = vals['a'] ?? 1;
+    const b = vals['b'] ?? 1;
+    const c = vals['c'] ?? 1;
 
     const pts: { x: number; y: number }[] = [];
     const N = 400;
@@ -153,7 +153,7 @@ export function SimulationCard({ sim }: { sim: Simulation }) {
                 max={p.max}
                 step={p.step || 0.1}
                 value={[vals[p.key] ?? p.default]}
-                onValueChange={([v]) => setVals((s) => ({ ...s, [p.key]: v }))}
+                onValueChange={(v) => setVals((s) => ({ ...s, [p.key]: v[0] ?? p.default }))}
               />
             </div>
           ))}
