@@ -2,6 +2,13 @@
 @source "../src";
 @import "tw-animate-css";
 
+@theme {
+  --font-sans:
+    "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Sora", ui-sans-serif, system-ui, sans-serif;
+}
+
+
 @custom-variant dark (&:is(.dark *));
 
 /*
