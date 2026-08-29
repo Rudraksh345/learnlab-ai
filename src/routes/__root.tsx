@@ -77,14 +77,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "ThinkMate AI — AI Study Dashboard for Mathematics" },
+      { title: "masterMath — AI Study Dashboard for Mathematics" },
       {
         name: "description",
         content:
           "Turn one page of maths notes into notes, formulas, examples, a visualizer, a quiz and an AI tutor.",
       },
-      { name: "author", content: "ThinkMate AI" },
-      { property: "og:title", content: "ThinkMate AI — AI Study Dashboard for Mathematics" },
+      { name: "author", content: "Rudraksh Goyal (RDX)" },
+      { property: "og:title", content: "masterMath — AI Study Dashboard for Mathematics" },
       {
         property: "og:description",
         content:
