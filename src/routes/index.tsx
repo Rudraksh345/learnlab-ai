@@ -10,13 +10,13 @@ import type { StudyPack } from "@/lib/study-types";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "ThinkMate AI — Turn Maths Notes Into a Study Dashboard" },
+      { title: "masterMath — Turn Maths Notes Into a Study Dashboard" },
       {
         name: "description",
         content:
           "Upload one page of maths notes and get concise notes, formulas, solved examples, an interactive visualizer, a 5-question quiz and an AI tutor.",
       },
-      { property: "og:title", content: "ThinkMate AI — AI Study Dashboard for Mathematics" },
+      { property: "og:title", content: "masterMath — AI Study Dashboard for Mathematics" },
       {
         property: "og:description",
         content:
@@ -72,7 +72,7 @@ function Index() {
           {!pack && (
             <>
               <h1 className="mt-5 font-display text-4xl font-bold sm:text-5xl">
-                <span className="text-gradient">ThinkMate AI</span>
+                <span className="text-gradient">masterMath</span>
               </h1>
               <p className="mt-3 max-w-xl text-sm text-muted-foreground sm:text-base">
                 Upload one page of your notes and get a complete dashboard: simple notes, key
@@ -88,6 +88,13 @@ function Index() {
         ) : (
           <UploadPanel onSubmit={handleSubmit} loading={loading} error={error} />
         )}
+
+        <footer className="mt-12 flex flex-col items-center gap-2 text-center">
+          <p className="text-sm text-muted-foreground">made by Rudraksh goyal</p>
+          <div className="font-display text-3xl font-bold tracking-wider text-gradient">
+            RDX
+          </div>
+        </footer>
       </div>
     </main>
   );
