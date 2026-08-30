@@ -15,7 +15,9 @@ export async function callGateway(
   opts: { json?: boolean } = {}
 ): Promise<string> {
   const apiKey = process.env["GEMINI_API_KEY"];
-  if (!apiKey) throw new Error("GEMINI_API_KEY is not configured in Vercel.");
+  if (!apiKey) {
+    throw new Error("GEMINI_API_KEY is not configured in Vercel.");
+  }
 
   const contents = messages.map((m) => {
     if (typeof m.content === "string") {
@@ -30,8 +32,12 @@ export async function callGateway(
         return { text: block.text };
       }
       if (block.type === "image_url") {
-        const base64Data = block.image_url.url.split(",")[1] || block.image_url.url;
-        const mimeType = block.image_url.url.split(";")[0]?.split(":")[1] || "image/png";
+        const base64Data = block.image_url.url.includes(",")
+          ? block.image_url.url.split(",")[1]
+          : block.image_url.url;
+        const mimeType = block.image_url.url.includes(";")
+          ? block.image_url.url.split(";")[0].replace("data:", "")
+          : "image/png";
         return {
           inlineData: {
             mimeType,
@@ -71,10 +77,28 @@ export async function callGateway(
 }
 
 export function parseJsonLoose<T>(raw: string): T {
-  const cleaned = raw
-    .trim()
-    .replace(/^
-http://googleusercontent.com/immersive_entry_chip/0
+  let cleaned = raw.trim();
+  
+  if (cleaned.startsWith("```json")) {
+    cleaned = cleaned.substring(7);
+  } else if (cleaned.startsWith("```")) {
+    cleaned = cleaned.substring(3);
+  }
+  
+  if (cleaned.endsWith("```")) {
+    cleaned = cleaned.substring(0, cleaned.length - 3);
+  }
+  
+  cleaned = cleaned.trim();
 
-4. Click **Commit changes**.
-5. Go to **Vercel** $\rightarrow$ **Deployments** $\rightarrow$ click `...` next to the latest build $\rightarrow$ **Redeploy**.
+  try {
+    return JSON.parse(cleaned) as T;
+  } catch {
+    const start = cleaned.indexOf("{");
+    const end = cleaned.lastIndexOf("}");
+    if (start !== -1 && end > start) {
+      return JSON.parse(cleaned.slice(start, end + 1)) as T;
+    }
+    throw new Error("Could not read the AI response. Please try again.");
+  }
+}
