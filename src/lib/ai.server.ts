@@ -1,4 +1,4 @@
-const MODEL = "gemini-2.5-flash";
+const MODEL = "google/gemini-3.7-flash";
 
 export type Block =
   | { type: "text"; text: string }
