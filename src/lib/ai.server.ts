@@ -1,4 +1,4 @@
-const MODEL = "gemini-2.5-flash";
+const MODEL = "google/gemini-3.7-flash";
 
 export type Block =
   | { type: "text"; text: string }
@@ -14,69 +14,37 @@ export async function callGateway(
   messages: ChatMessage[],
   opts: { json?: boolean } = {}
 ): Promise<string> {
-  const apiKey = process.env["GEMINI_API_KEY"];
+  const apiKey = process.env["LOVABLE_API_KEY"];
   if (!apiKey) {
-    throw new Error("GEMINI_API_KEY is not configured in Vercel.");
+    throw new Error("AI is not configured for this app yet.");
   }
 
-  // Convert ChatMessages to Gemini API structure safely
-  const contents = messages.map((m) => {
-    const role = m.role === "assistant" ? "model" : "user";
-
-    if (typeof m.content === "string") {
-      return {
-        role,
-        parts: [{ text: m.content || " " }],
-      };
-    }
-
-    const parts = m.content
-      .map((block) => {
-        if (block.type === "text") {
-          return block.text ? { text: block.text } : null;
-        }
-        if (block.type === "image_url" && block.image_url?.url) {
-          const rawUrl = block.image_url.url;
-          const base64Data = rawUrl.includes(",") ? (rawUrl.split(",")[1] ?? "") : rawUrl;
-          const mimeType = rawUrl.includes(";")
-            ? (rawUrl.split(";")[0] ?? "").replace("data:", "")
-            : "image/png";
-
-          return {
-            inline_data: {
-              mime_type: mimeType,
-              data: base64Data,
-            },
-          };
-        }
-        return null;
-      })
-      .filter((part): part is NonNullable<typeof part> => part !== null);
-
-    return {
-      role,
-      parts: parts.length > 0 ? parts : [{ text: " " }],
-    };
-  });
-
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${apiKey}`;
-
-  const res = await fetch(url, {
+  const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      "Lovable-API-Key": apiKey,
+    },
     body: JSON.stringify({
-      contents,
-      generationConfig: opts.json ? { responseMimeType: "application/json" } : {},
+      model: MODEL,
+      messages,
+      ...(opts.json ? { response_format: { type: "json_object" } } : {}),
     }),
   });
 
   if (!res.ok) {
+    if (res.status === 429) {
+      throw new Error("Too many requests right now. Please wait a moment and try again.");
+    }
+    if (res.status === 402) {
+      throw new Error("AI credits are exhausted. Please add credits to continue.");
+    }
     const detail = await res.text().catch(() => "");
     throw new Error(`AI request failed (${res.status}): ${detail.slice(0, 300)}`);
   }
 
   const data = await res.json();
-  const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+  const text = data?.choices?.[0]?.message?.content;
   if (!text) throw new Error("The AI returned an empty response. Please try again.");
   return text;
 }
