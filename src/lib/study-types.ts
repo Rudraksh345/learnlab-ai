@@ -54,6 +54,18 @@ export type QuizQuestion = {
   difficulty?: "easy" | "medium" | "hard";
 };
 
+export type QuestionSolution = {
+  question: string;
+  topic: string;
+  meaning: string[];
+  approach: string;
+  steps: { title: string; detail: string }[];
+  answer: string;
+  simulation: Simulation;
+  hinglish: string[];
+  tips: string[];
+};
+
 export type StudyPack = {
   topic: string;
   summary: string;

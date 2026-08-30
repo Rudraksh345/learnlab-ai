@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { callGateway, parseJsonLoose, type ChatMessage } from "./ai.server";
-import type { StudyPack } from "./study-types";
+import type { QuestionSolution, StudyPack } from "./study-types";
 
 const AnalyzeInput = z.object({
   fileName: z.string().min(1),
@@ -92,4 +92,73 @@ ${data.context}`,
 
     const reply = await callGateway(messages);
     return { reply };
+  });
+
+const SolveInput = z.object({
+  question: z.string().max(4000).optional(),
+  fileName: z.string().optional(),
+  mimeType: z.string().optional(),
+  dataUrl: z.string().optional(),
+});
+
+const SOLVE_PROMPT = `You are masterMath, a professor of undergraduate Engineering Mathematics (B.Tech M-I to M-IV).
+You are rigorously accurate in calculus, multivariable calculus, ODEs & PDEs, matrices & linear algebra, vector calculus, complex analysis, Fourier series & transforms, Laplace transforms, probability, statistics and numerical methods.
+The student gives ONE mathematics question or example (typed or as an image/PDF). Solve it.
+Verify every computation internally step-by-step before writing it; the final answer MUST be correct.
+Explain in very simple, student-friendly language with no unnecessary complexity.
+Respond with a SINGLE JSON object, no markdown, matching exactly:
+{
+  "question": string (restate the question cleanly),
+  "topic": string (short topic name),
+  "meaning": string[] (3-5 bullets: what the question is actually asking, in very simple words),
+  "approach": string (1-2 sentences: the plan/method),
+  "steps": [{ "title": string (short step name), "detail": string (the working, simple math notation) }] (4-8 steps),
+  "answer": string (final answer, clearly stated),
+  "simulation": { "available": boolean, "title": string, "description": string, "expression": string, "curves": [{"label": string, "expression": string}], "xMin": number, "xMax": number, "xLabel": string, "yLabel": string, "params": [{"key": "a"|"b"|"c", "label": string, "min": number, "max": number, "step": number, "default": number}], "animateParam": "a"|"b"|"c"|null, "insight": string },
+  "hinglish": string[] (4-7 bullets explaining BOTH the concept and the solution naturally in Hinglish - Hindi in Roman script mixed with English maths terms),
+  "tips": string[] (2-4 exam tips or common mistakes)
+}
+SIMULATION RULES - build one EXCLUSIVELY for THIS question whenever a 2D graph helps:
+- Choose the most instructive visual: the function and its derivative/integral, ODE solution curves for varying constants, Fourier partial sum vs target wave, Taylor polynomial vs true function, damped oscillator, probability density, Newton-Raphson iteration curve, etc.
+- Use "curves" (1-3) to plot related functions together; also set "expression" to the primary curve.
+- Every expression MUST be valid JavaScript math using only x, a, b, c, numbers, + - * / ( ) and the bare functions sin, cos, tan, sinh, cosh, tanh, asin, acos, atan, exp, log, sqrt, cbrt, abs, sign, pow, min, max (no "Math." prefix, no ** operator, expand series manually).
+- Give 1-3 sliders that genuinely change the mathematics and set "animateParam" to the best one (or null).
+- Only set available=false when no 2D graph could possibly help; then expression="", curves=[] and params=[].`;
+
+export const solveQuestion = createServerFn({ method: "POST" })
+  .inputValidator((input: unknown) => SolveInput.parse(input))
+  .handler(async ({ data }) => {
+    if (!data.question && !data.dataUrl) {
+      throw new Error("Please type a question or upload an image of it.");
+    }
+
+    const content: Exclude<ChatMessage["content"], string> = [
+      {
+        type: "text",
+        text: data.question
+          ? `Solve this mathematics question: ${data.question}`
+          : "Solve the mathematics question in this attached page.",
+      },
+    ];
+
+    if (data.dataUrl) {
+      content.push(
+        data.mimeType?.includes("pdf")
+          ? {
+              type: "file",
+              file: { filename: data.fileName ?? "question.pdf", file_data: data.dataUrl },
+            }
+          : { type: "image_url", image_url: { url: data.dataUrl } },
+      );
+    }
+
+    const raw = await callGateway(
+      [
+        { role: "system", content: SOLVE_PROMPT },
+        { role: "user", content },
+      ],
+      { json: true },
+    );
+
+    return parseJsonLoose<QuestionSolution>(raw);
   });
