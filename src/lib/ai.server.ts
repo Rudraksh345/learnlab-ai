@@ -1,4 +1,4 @@
-const MODEL = "gemini-1.5-flash";
+const MODEL = "gemini-2.5-flash";
 
 export type Block =
   | { type: "text"; text: string }
@@ -19,38 +19,43 @@ export async function callGateway(
     throw new Error("GEMINI_API_KEY is not configured in Vercel.");
   }
 
+  // Convert ChatMessages to Gemini API structure safely
   const contents = messages.map((m) => {
+    const role = m.role === "assistant" ? "model" : "user";
+
     if (typeof m.content === "string") {
       return {
-        role: m.role === "assistant" ? "model" : "user",
-        parts: [{ text: m.content }],
+        role,
+        parts: [{ text: m.content || " " }],
       };
     }
 
-    const parts = m.content.map((block) => {
-      if (block.type === "text") {
-        return { text: block.text };
-      }
-      if (block.type === "image_url") {
-        const base64Data = block.image_url.url.includes(",")
-          ? block.image_url.url.split(",")[1]
-          : block.image_url.url;
-        const mimeType = block.image_url.url.includes(";")
-          ? block.image_url.url.split(";")[0].replace("data:", "")
-          : "image/png";
-        return {
-          inlineData: {
-            mimeType,
-            data: base64Data,
-          },
-        };
-      }
-      return { text: "" };
-    });
+    const parts = m.content
+      .map((block) => {
+        if (block.type === "text") {
+          return block.text ? { text: block.text } : null;
+        }
+        if (block.type === "image_url" && block.image_url?.url) {
+          const rawUrl = block.image_url.url;
+          const base64Data = rawUrl.includes(",") ? rawUrl.split(",")[1] : rawUrl;
+          const mimeType = rawUrl.includes(";")
+            ? rawUrl.split(";")[0].replace("data:", "")
+            : "image/png";
+
+          return {
+            inline_data: {
+              mime_type: mimeType,
+              data: base64Data,
+            },
+          };
+        }
+        return null;
+      })
+      .filter((part): part is NonNullable<typeof part> => part !== null);
 
     return {
-      role: m.role === "assistant" ? "model" : "user",
-      parts,
+      role,
+      parts: parts.length > 0 ? parts : [{ text: " " }],
     };
   });
 
@@ -78,17 +83,17 @@ export async function callGateway(
 
 export function parseJsonLoose<T>(raw: string): T {
   let cleaned = raw.trim();
-  
+
   if (cleaned.startsWith("```json")) {
     cleaned = cleaned.substring(7);
   } else if (cleaned.startsWith("```")) {
     cleaned = cleaned.substring(3);
   }
-  
+
   if (cleaned.endsWith("```")) {
     cleaned = cleaned.substring(0, cleaned.length - 3);
   }
-  
+
   cleaned = cleaned.trim();
 
   try {
