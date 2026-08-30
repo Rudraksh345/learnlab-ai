@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { callGateway, parseJsonLoose, type ChatMessage } from "./ai.server";
-import type { StudyPack } from "./study-types";
+import type { QuestionSolution, StudyPack } from "./study-types";
 
 const AnalyzeInput = z.object({
   fileName: z.string().min(1),
