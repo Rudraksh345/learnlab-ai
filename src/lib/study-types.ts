@@ -10,6 +10,7 @@ export type Example = {
   problem: string;
   steps: string[];
   answer: string;
+  difficulty?: "easy" | "medium" | "hard";
 };
 
 export type SimParam = {
@@ -21,15 +22,27 @@ export type SimParam = {
   default: number;
 };
 
+export type SimCurve = {
+  label: string;
+  /** JS math expression in terms of x, a, b, c */
+  expression: string;
+};
+
 export type Simulation = {
   available: boolean;
   title: string;
   description: string;
   /** JS math expression in terms of x, a, b, c. e.g. "a*x*x + b*x + c" */
   expression: string;
+  /** Optional extra curves plotted together (e.g. function + derivative) */
+  curves?: SimCurve[];
   xMin: number;
   xMax: number;
+  xLabel?: string;
+  yLabel?: string;
   params: SimParam[];
+  /** Parameter animated over time when the user presses play */
+  animateParam?: "a" | "b" | "c" | null;
   insight: string;
 };
 
@@ -38,6 +51,7 @@ export type QuizQuestion = {
   options: string[];
   correctIndex: number;
   explanation: string;
+  difficulty?: "easy" | "medium" | "hard";
 };
 
 export type StudyPack = {
