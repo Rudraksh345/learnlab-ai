@@ -116,10 +116,6 @@ function Index() {
 
         <footer className="mt-12 flex flex-col items-center gap-2 text-center">
           <p className="text-sm text-muted-foreground">Made by Rudraksh Goyal</p>
-
-
-        <footer className="mt-12 flex flex-col items-center gap-2 text-center">
-          <p className="text-sm text-muted-foreground">made by Rudraksh goyal</p>
           <div className="font-display text-3xl font-bold tracking-wider text-gradient">
             RDX
           </div>
