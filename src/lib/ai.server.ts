@@ -1,8 +1,13 @@
 const MODEL = "gemini-1.5-flash";
 
+export type Block =
+  | { type: "text"; text: string }
+  | { type: "image_url"; image_url: { url: string } }
+  | { type: "file"; file: { filename: string; file_data: string } };
+
 export type ChatMessage = {
   role: "system" | "user" | "assistant";
-  content: string;
+  content: string | Block[];
 };
 
 export async function callGateway(
@@ -12,10 +17,36 @@ export async function callGateway(
   const apiKey = process.env["GEMINI_API_KEY"];
   if (!apiKey) throw new Error("GEMINI_API_KEY is not configured in Vercel.");
 
-  const contents = messages.map((m) => ({
-    role: m.role === "assistant" ? "model" : "user",
-    parts: [{ text: m.content }],
-  }));
+  const contents = messages.map((m) => {
+    if (typeof m.content === "string") {
+      return {
+        role: m.role === "assistant" ? "model" : "user",
+        parts: [{ text: m.content }],
+      };
+    }
+
+    const parts = m.content.map((block) => {
+      if (block.type === "text") {
+        return { text: block.text };
+      }
+      if (block.type === "image_url") {
+        const base64Data = block.image_url.url.split(",")[1] || block.image_url.url;
+        const mimeType = block.image_url.url.split(";")[0]?.split(":")[1] || "image/png";
+        return {
+          inlineData: {
+            mimeType,
+            data: base64Data,
+          },
+        };
+      }
+      return { text: "" };
+    });
+
+    return {
+      role: m.role === "assistant" ? "model" : "user",
+      parts,
+    };
+  });
 
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${apiKey}`;
 
@@ -35,6 +66,15 @@ export async function callGateway(
 
   const data = await res.json();
   const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-  if (!text) throw new Error("Empty AI response received.");
+  if (!text) throw new Error("The AI returned an empty response. Please try again.");
   return text;
 }
+
+export function parseJsonLoose<T>(raw: string): T {
+  const cleaned = raw
+    .trim()
+    .replace(/^
+http://googleusercontent.com/immersive_entry_chip/0
+
+4. Click **Commit changes**.
+5. Go to **Vercel** $\rightarrow$ **Deployments** $\rightarrow$ click `...` next to the latest build $\rightarrow$ **Redeploy**.
