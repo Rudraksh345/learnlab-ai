@@ -87,11 +87,36 @@ function Index() {
         {pack ? (
           <StudyDashboard pack={pack} onReset={() => setPack(null)} />
         ) : (
-          <div className="space-y-6">
-            <UploadPanel onSubmit={handleSubmit} loading={loading} error={error} />
-            <MentorCard />
-          </div>
+          <Tabs defaultValue="page" className="w-full">
+            <TabsList className="mx-auto grid h-auto w-full max-w-md grid-cols-2 gap-1 rounded-2xl bg-card p-1.5 shadow-[var(--shadow-card)]">
+              <TabsTrigger
+                value="page"
+                className="gap-1.5 rounded-xl px-3 py-2 text-sm data-[state=active]:bg-gradient-hero data-[state=active]:text-primary-foreground"
+              >
+                <BookOpen className="size-4" /> Notes page
+              </TabsTrigger>
+              <TabsTrigger
+                value="question"
+                className="gap-1.5 rounded-xl px-3 py-2 text-sm data-[state=active]:bg-gradient-hero data-[state=active]:text-primary-foreground"
+              >
+                <HelpCircle className="size-4" /> Question / Example
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="page" className="mt-6 space-y-6">
+              <UploadPanel onSubmit={handleSubmit} loading={loading} error={error} />
+              <MentorCard />
+            </TabsContent>
+
+            <TabsContent value="question" className="mt-6">
+              <QuestionMode />
+            </TabsContent>
+          </Tabs>
         )}
+
+        <footer className="mt-12 flex flex-col items-center gap-2 text-center">
+          <p className="text-sm text-muted-foreground">Made by Rudraksh Goyal</p>
+
 
         <footer className="mt-12 flex flex-col items-center gap-2 text-center">
           <p className="text-sm text-muted-foreground">made by Rudraksh goyal</p>
