@@ -1,65 +1,40 @@
-const GATEWAY = "https://ai.gateway.lovable.dev/v1/chat/completions";
-const MODEL = "google/gemini-3.7-flash";
-
-type Block =
-  | { type: "text"; text: string }
-  | { type: "image_url"; image_url: { url: string } }
-  | { type: "file"; file: { filename: string; file_data: string } };
+const MODEL = "gemini-1.5-flash";
 
 export type ChatMessage = {
   role: "system" | "user" | "assistant";
-  content: string | Block[];
+  content: string;
 };
 
 export async function callGateway(
   messages: ChatMessage[],
-  opts: { json?: boolean } = {},
+  opts: { json?: boolean } = {}
 ): Promise<string> {
-  const key = process.env["LOVABLE_API_KEY"];
-  if (!key) throw new Error("AI is not configured (missing API key).");
+  const apiKey = process.env["GEMINI_API_KEY"];
+  if (!apiKey) throw new Error("GEMINI_API_KEY is not configured in Vercel.");
 
-  const res = await fetch(GATEWAY, {
+  const contents = messages.map((m) => ({
+    role: m.role === "assistant" ? "model" : "user",
+    parts: [{ text: m.content }],
+  }));
+
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${apiKey}`;
+
+  const res = await fetch(url, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "Lovable-API-Key": key,
-    },
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      model: MODEL,
-      messages,
-      ...(opts.json ? { response_format: { type: "json_object" } } : {}),
+      contents,
+      generationConfig: opts.json ? { responseMimeType: "application/json" } : {},
     }),
   });
 
   if (!res.ok) {
     const detail = await res.text().catch(() => "");
-    if (res.status === 429)
-      throw new Error("Too many requests right now. Please wait a moment and try again.");
-    if (res.status === 402)
-      throw new Error("AI credits are exhausted. Please add credits to continue.");
-    throw new Error(`AI request failed (${res.status}). ${detail.slice(0, 300)}`);
+    throw new Error(`AI request failed (${res.status}): ${detail.slice(0, 300)}`);
   }
 
-  const data = (await res.json()) as {
-    choices?: Array<{ message?: { content?: string } }>;
-  };
-  const text = data.choices?.[0]?.message?.content;
-  if (!text) throw new Error("The AI returned an empty response. Please try again.");
+  const data = await res.json();
+  const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+  if (!text) throw new Error("Empty AI response received.");
   return text;
-}
-
-export function parseJsonLoose<T>(raw: string): T {
-  const cleaned = raw
-    .trim()
-    .replace(/^```(?:json)?/i, "")
-    .replace(/```$/, "")
-    .trim();
-  try {
-    return JSON.parse(cleaned) as T;
-  } catch {
-    const start = cleaned.indexOf("{");
-    const end = cleaned.lastIndexOf("}");
-    if (start !== -1 && end > start) return JSON.parse(cleaned.slice(start, end + 1)) as T;
-    throw new Error("Could not read the AI response. Please try again.");
-  }
 }
