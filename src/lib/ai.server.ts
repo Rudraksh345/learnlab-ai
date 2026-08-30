@@ -37,9 +37,9 @@ export async function callGateway(
         }
         if (block.type === "image_url" && block.image_url?.url) {
           const rawUrl = block.image_url.url;
-          const base64Data = rawUrl.includes(",") ? rawUrl.split(",")[1] : rawUrl;
+          const base64Data = rawUrl.includes(",") ? (rawUrl.split(",")[1] ?? "") : rawUrl;
           const mimeType = rawUrl.includes(";")
-            ? rawUrl.split(";")[0].replace("data:", "")
+            ? (rawUrl.split(";")[0] ?? "").replace("data:", "")
             : "image/png";
 
           return {

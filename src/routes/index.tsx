@@ -4,6 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { GraduationCap } from "lucide-react";
 import { UploadPanel } from "@/components/UploadPanel";
 import { StudyDashboard } from "@/components/StudyDashboard";
+import { MentorCard } from "@/components/MentorCard";
 import { analyzePage } from "@/lib/study.functions";
 import type { StudyPack } from "@/lib/study-types";
 
@@ -86,7 +87,10 @@ function Index() {
         {pack ? (
           <StudyDashboard pack={pack} onReset={() => setPack(null)} />
         ) : (
-          <UploadPanel onSubmit={handleSubmit} loading={loading} error={error} />
+          <div className="space-y-6">
+            <UploadPanel onSubmit={handleSubmit} loading={loading} error={error} />
+            <MentorCard />
+          </div>
         )}
 
         <footer className="mt-12 flex flex-col items-center gap-2 text-center">
