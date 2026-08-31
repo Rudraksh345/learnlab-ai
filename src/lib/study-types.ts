@@ -67,6 +67,20 @@ export type QuestionSolution = {
   tips: string[];
 };
 
+export type FormulaSheet = {
+  title: string;
+  sections: {
+    heading: string;
+    items: { name: string; formula: string; condition?: string }[];
+  }[];
+  reminders?: string[];
+};
+
+export type HinglishNotes = {
+  title: string;
+  sections: { heading: string; lines: string[] }[];
+};
+
 export type StudyPack = {
   topic: string;
   summary: string;
