@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { callGateway, parseJsonLoose, type ChatMessage } from "./ai.server";
-import type { QuestionSolution, StudyPack } from "./study-types";
+import type { FormulaSheet, HinglishNotes, QuestionSolution, StudyPack } from "./study-types";
 
 const AnalyzeInput = z.object({
   fileName: z.string().min(1),
@@ -163,4 +163,79 @@ export const solveQuestion = createServerFn({ method: "POST" })
     );
 
     return parseJsonLoose<QuestionSolution>(raw);
+  });
+
+const StepInput = z.object({
+  step: z.string().min(1).max(4000),
+  context: z.string().min(1).max(8000),
+  hinglish: z.boolean(),
+});
+
+export const explainStep = createServerFn({ method: "POST" })
+  .inputValidator((input: unknown) => StepInput.parse(input))
+  .handler(async ({ data }) => {
+    const reply = await callGateway([
+      {
+        role: "system",
+        content: `You are an Engineering Mathematics professor. Explain ONLY the single solution step given, in very simple, student-friendly language.
+Verify the mathematics before answering. 3-5 short lines max: what is being done, why it is done, and the rule/formula used. No extra steps, no filler.
+${data.hinglish ? "Reply in natural Hinglish (Hindi in Roman script with English maths terms)." : "Reply in simple English."}`,
+      },
+      {
+        role: "user",
+        content: `Full solution context (for reference only):\n${data.context}\n\nExplain ONLY this step:\n${data.step}`,
+      },
+    ]);
+    return { reply };
+  });
+
+const SheetInput = z.object({ context: z.string().min(1).max(20000) });
+
+const SHEET_PROMPT = `You are an Engineering Mathematics professor building a revision formula sheet.
+Include ONLY formulas that are actually relevant to the given material — nothing generic or unrelated.
+ACCURACY IS CRITICAL: verify every sign, symbol, power, fraction, subscript, index and validity condition before writing it. Never write an incorrect or half-remembered formula; omit anything you cannot verify.
+Write formulas in plain readable math text (e.g. "x = (-b ± √(b² - 4ac)) / 2a", "∫ x^n dx = x^(n+1)/(n+1) + C, n ≠ -1").
+Respond with a SINGLE JSON object, no markdown:
+{
+  "title": string (short sheet title),
+  "sections": [{ "heading": string, "items": [{ "name": string, "formula": string, "condition": string (validity condition or "" ) }] }] (2-5 sections, 2-6 items each),
+  "reminders": string[] (2-4 short accuracy reminders about signs/conditions)
+}
+Be concise.`;
+
+export const makeFormulaSheet = createServerFn({ method: "POST" })
+  .inputValidator((input: unknown) => SheetInput.parse(input))
+  .handler(async ({ data }) => {
+    const raw = await callGateway(
+      [
+        { role: "system", content: SHEET_PROMPT },
+        { role: "user", content: `Material:\n${data.context}` },
+      ],
+      { json: true },
+    );
+    return parseJsonLoose<FormulaSheet>(raw);
+  });
+
+const NotesInput = z.object({ context: z.string().min(1).max(20000) });
+
+const HINGLISH_NOTES_PROMPT = `You are an Engineering Mathematics teacher writing handwritten-style class notes in natural Hinglish (Hindi in Roman script mixed with English maths terms).
+Keep it simple and friendly, like a topper's notebook. All mathematical notation, formulas, signs, powers and conditions MUST stay accurate and clearly readable in plain math text.
+Respond with a SINGLE JSON object, no markdown:
+{
+  "title": string,
+  "sections": [{ "heading": string, "lines": string[] (3-6 short lines each) }] (4-7 sections)
+}
+Be concise, no filler.`;
+
+export const hinglishNotes = createServerFn({ method: "POST" })
+  .inputValidator((input: unknown) => NotesInput.parse(input))
+  .handler(async ({ data }) => {
+    const raw = await callGateway(
+      [
+        { role: "system", content: HINGLISH_NOTES_PROMPT },
+        { role: "user", content: `Material:\n${data.context}` },
+      ],
+      { json: true },
+    );
+    return parseJsonLoose<HinglishNotes>(raw);
   });

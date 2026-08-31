@@ -16,6 +16,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { SimulationCard } from "@/components/SimulationCard";
+import { StepExplain } from "@/components/StepExplain";
+import { FormulaSheetCard } from "@/components/FormulaSheetCard";
 import { TutorPanel } from "@/components/TutorPanel";
 import { solveQuestion } from "@/lib/study.functions";
 import type { QuestionSolution } from "@/lib/study-types";
@@ -177,9 +179,13 @@ export function QuestionMode() {
                     <span className="flex size-6 shrink-0 items-center justify-center rounded-lg bg-gradient-hero text-xs font-semibold text-primary-foreground">
                       {i + 1}
                     </span>
-                    <span>
+                    <span className="min-w-0 flex-1">
                       <span className="font-semibold">{s.title}</span>
                       <span className="mt-0.5 block text-muted-foreground">{s.detail}</span>
+                      <StepExplain
+                        step={`${s.title}: ${s.detail}`}
+                        context={`Question: ${result.question}\nApproach: ${result.approach}\nAnswer: ${result.answer}`}
+                      />
                     </span>
                   </li>
                 ))}
