@@ -175,7 +175,16 @@ export function StudyDashboard({ pack, onReset }: { pack: StudyPack; onReset: ()
           </TabsContent>
 
           <TabsContent value="simulation" className="animate-in fade-in-50">
-            <SimulationCard sim={pack.simulation} />
+            <div className="space-y-4">
+              {(pack.simulations?.length
+                ? pack.simulations
+                : pack.simulation
+                  ? [pack.simulation]
+                  : []
+              ).map((sim, i) => (
+                <SimulationCard key={i} sim={sim} />
+              ))}
+            </div>
           </TabsContent>
 
           <TabsContent value="quiz" className="animate-in fade-in-50">
@@ -183,7 +192,18 @@ export function StudyDashboard({ pack, onReset }: { pack: StudyPack; onReset: ()
           </TabsContent>
 
           <TabsContent value="tutor" className="animate-in fade-in-50">
-            <TutorPanel pack={pack} />
+            <TutorPanel
+              topic={pack.topic}
+              context={JSON.stringify({
+                topic: pack.topic,
+                summary: pack.summary,
+                notes: pack.notes,
+                concepts: pack.concepts,
+                formulas: pack.formulas,
+                examples: pack.examples,
+                examPoints: pack.examPoints,
+              })}
+            />
           </TabsContent>
         </div>
       </Tabs>

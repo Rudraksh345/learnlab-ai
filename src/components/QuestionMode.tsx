@@ -16,6 +16,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { SimulationCard } from "@/components/SimulationCard";
+import { TutorPanel } from "@/components/TutorPanel";
 import { solveQuestion } from "@/lib/study.functions";
 import type { QuestionSolution } from "@/lib/study-types";
 
@@ -202,7 +203,14 @@ export function QuestionMode() {
             </CardContent>
           </Card>
 
-          <SimulationCard sim={result.simulation} />
+          {(result.simulations?.length
+            ? result.simulations
+            : result.simulation
+              ? [result.simulation]
+              : []
+          ).map((sim, i) => (
+            <SimulationCard key={i} sim={sim} />
+          ))}
 
           <Card className="shadow-[var(--shadow-card)]">
             <CardHeader className="flex flex-row items-center justify-between gap-3 space-y-0">
@@ -231,6 +239,24 @@ export function QuestionMode() {
               </CardContent>
             )}
           </Card>
+          <TutorPanel
+            topic={result.topic}
+            context={JSON.stringify({
+              question: result.question,
+              topic: result.topic,
+              meaning: result.meaning,
+              approach: result.approach,
+              steps: result.steps,
+              answer: result.answer,
+              tips: result.tips,
+            })}
+            quick={[
+              { label: "Explain simply", prompt: "Explain this question and its solution in the simplest way." },
+              { label: "Why this step?", prompt: "Explain why each step of the solution works." },
+              { label: "Give me a hint", prompt: "Give me a hint for the trickiest part of this question." },
+              { label: "Similar question", prompt: "Give me a similar practice question and solve it step by step." },
+            ]}
+          />
         </div>
       )}
     </div>

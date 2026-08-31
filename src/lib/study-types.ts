@@ -61,7 +61,8 @@ export type QuestionSolution = {
   approach: string;
   steps: { title: string; detail: string }[];
   answer: string;
-  simulation: Simulation;
+  simulation?: Simulation;
+  simulations?: Simulation[];
   hinglish: string[];
   tips: string[];
 };
@@ -73,7 +74,8 @@ export type StudyPack = {
   concepts: { term: string; definition: string }[];
   formulas: Formula[];
   examples: Example[];
-  simulation: Simulation;
+  simulation?: Simulation;
+  simulations?: Simulation[];
   quiz: QuizQuestion[];
   examPoints: string[];
 };

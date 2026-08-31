@@ -6,7 +6,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { askTutor } from "@/lib/study.functions";
-import type { StudyPack } from "@/lib/study-types";
 
 type Msg = { role: "user" | "assistant"; content: string };
 
@@ -17,24 +16,20 @@ const QUICK = [
   { label: "Quiz me", prompt: "Ask me one question from this page and wait for my answer." },
 ];
 
-function buildContext(pack: StudyPack) {
-  return JSON.stringify({
-    topic: pack.topic,
-    summary: pack.summary,
-    notes: pack.notes,
-    concepts: pack.concepts,
-    formulas: pack.formulas,
-    examples: pack.examples,
-    examPoints: pack.examPoints,
-  }).slice(0, 18000);
-}
-
-export function TutorPanel({ pack }: { pack: StudyPack }) {
+export function TutorPanel({
+  topic,
+  context,
+  quick = QUICK,
+}: {
+  topic: string;
+  context: string;
+  quick?: { label: string; prompt: string }[];
+}) {
   const ask = useServerFn(askTutor);
   const [messages, setMessages] = useState<Msg[]>([
     {
       role: "assistant",
-      content: `Hi! I'm your ThinkMate tutor for **${pack.topic}**. Ask me anything from this page, or tap a shortcut below.`,
+      content: `Hi! I'm your ThinkMate tutor for **${topic}**. Ask me anything from this page, or tap a shortcut below.`,
     },
   ]);
   const [input, setInput] = useState("");
@@ -54,7 +49,7 @@ export function TutorPanel({ pack }: { pack: StudyPack }) {
     setLoading(true);
     try {
       const res = await ask({
-        data: { question, hinglish, context: buildContext(pack), history },
+        data: { question, hinglish, context: context.slice(0, 18000), history },
       });
       setMessages((m) => [...m, { role: "assistant", content: res.reply }]);
     } catch (e) {
@@ -122,7 +117,7 @@ export function TutorPanel({ pack }: { pack: StudyPack }) {
 
       <div className="border-t p-3">
         <div className="mb-2 flex flex-wrap gap-2">
-          {QUICK.map((q) => (
+          {quick.map((q) => (
             <Button
               key={q.label}
               size="sm"
