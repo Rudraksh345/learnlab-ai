@@ -5,7 +5,7 @@ import { BookOpen, GraduationCap, HelpCircle } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { UploadPanel } from "@/components/UploadPanel";
 import { StudyDashboard } from "@/components/StudyDashboard";
-import { MentorCard } from "@/components/MentorCard";
+
 import { QuestionMode } from "@/components/QuestionMode";
 import { analyzePage } from "@/lib/study.functions";
 import type { StudyPack } from "@/lib/study-types";
@@ -107,7 +107,6 @@ function Index() {
 
             <TabsContent value="page" className="mt-6 space-y-6">
               <UploadPanel onSubmit={handleSubmit} loading={loading} error={error} />
-              <MentorCard />
             </TabsContent>
 
             <TabsContent value="question" className="mt-6">
