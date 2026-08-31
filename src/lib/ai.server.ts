@@ -28,6 +28,7 @@ export async function callGateway(
     body: JSON.stringify({
       model: MODEL,
       messages,
+      service_tier: "priority",
       ...(opts.json ? { response_format: { type: "json_object" } } : {}),
     }),
   });
