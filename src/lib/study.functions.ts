@@ -21,16 +21,17 @@ Respond with a SINGLE JSON object, no markdown, matching exactly this shape:
   "concepts": [{ "term": string, "definition": string }] (4-8 items),
   "formulas": [{ "name": string, "latexLike": string (plain readable math, e.g. "x = (-b ± √(b²-4ac)) / 2a"), "variables": [{"symbol": string, "meaning": string}], "usage": string }],
   "examples": [{ "title": string, "problem": string, "steps": string[], "answer": string, "difficulty": "easy"|"medium"|"hard" }] (EXACTLY 5, ordered easy → hard, at least one exam-level hard problem),
-  "simulation": { "available": boolean, "title": string, "description": string, "expression": string, "curves": [{"label": string, "expression": string}], "xMin": number, "xMax": number, "xLabel": string, "yLabel": string, "params": [{"key": "a"|"b"|"c", "label": string, "min": number, "max": number, "step": number, "default": number}], "animateParam": "a"|"b"|"c"|null, "insight": string },
-  "quiz": [{ "question": string, "options": string[4], "correctIndex": number, "explanation": string, "difficulty": "easy"|"medium"|"hard" }] (EXACTLY 10, mixed difficulty),
+  "simulations": [{ "available": boolean, "title": string, "description": string, "expression": string, "curves": [{"label": string, "expression": string}], "xMin": number, "xMax": number, "xLabel": string, "yLabel": string, "params": [{"key": "a"|"b"|"c", "label": string, "min": number, "max": number, "step": number, "default": number}], "animateParam": "a"|"b"|"c"|null, "insight": string }] (EXACTLY 5 DIFFERENT simulations, each exclusive to this page),
+  "quiz": [{ "question": string, "options": string[4], "correctIndex": number, "explanation": string, "difficulty": "easy"|"medium"|"hard" }] (EXACTLY 12: first 10 simple (easy/medium), last 2 difficult exam-level),
   "examPoints": string[] (5-7 exam-focused points)
 }
-SIMULATION RULES — be intelligent and always try to build a meaningful one:
-- Identify the concept and choose the most instructive 2D visualisation, e.g. a function and its derivative/integral, solution curves of an ODE for varying constants, a Fourier partial sum vs the target wave, a Taylor polynomial vs the true function, a damped oscillator, a probability density, Newton-Raphson iteration curve, or a transformed vector-field cross-section.
+SIMULATION RULES — build EXACTLY 5 DIFFERENT, exclusive simulations derived from THIS page (never generic textbook defaults); each must visualise a different idea from the page:
+- Identify the concepts and choose the most instructive 2D visualisations, e.g. a function and its derivative/integral, solution curves of an ODE for varying constants, a Fourier partial sum vs the target wave, a Taylor polynomial vs the true function, a damped oscillator, a probability density, Newton-Raphson iteration curve, or a transformed vector-field cross-section.
 - Use "curves" (1-3 entries) to plot related functions together (e.g. {"label":"f(x)"} and {"label":"f'(x)"}), and set "expression" to the primary curve too.
 - Every expression MUST be valid JavaScript math using only x, a, b, c, numbers, + - * / ( ) and the bare functions sin, cos, tan, sinh, cosh, tanh, asin, acos, atan, exp, log, sqrt, cbrt, abs, sign, pow, min, max (no "Math." prefix, no ** operator, no summation/integral notation — expand series manually).
 - Give 1-3 sliders whose parameters genuinely change the mathematics, and set "animateParam" to the parameter most worth animating (or null).
-- Only set available=false when no 2D graph could possibly help; then expression="", curves=[] and params=[].
+- Every simulation must have available=true, a distinct title and a real insight tied to the page.
+Be concise: no filler text, keep each string short so the response is fast.
 Keep language simple and student-friendly. Never invent content unrelated to the page.`;
 
 export const analyzePage = createServerFn({ method: "POST" })
@@ -114,16 +115,17 @@ Respond with a SINGLE JSON object, no markdown, matching exactly:
   "approach": string (1-2 sentences: the plan/method),
   "steps": [{ "title": string (short step name), "detail": string (the working, simple math notation) }] (4-8 steps),
   "answer": string (final answer, clearly stated),
-  "simulation": { "available": boolean, "title": string, "description": string, "expression": string, "curves": [{"label": string, "expression": string}], "xMin": number, "xMax": number, "xLabel": string, "yLabel": string, "params": [{"key": "a"|"b"|"c", "label": string, "min": number, "max": number, "step": number, "default": number}], "animateParam": "a"|"b"|"c"|null, "insight": string },
+  "simulations": [{ "available": boolean, "title": string, "description": string, "expression": string, "curves": [{"label": string, "expression": string}], "xMin": number, "xMax": number, "xLabel": string, "yLabel": string, "params": [{"key": "a"|"b"|"c", "label": string, "min": number, "max": number, "step": number, "default": number}], "animateParam": "a"|"b"|"c"|null, "insight": string }] (1-2 simulations designed EXCLUSIVELY for this question),
   "hinglish": string[] (4-7 bullets explaining BOTH the concept and the solution naturally in Hinglish - Hindi in Roman script mixed with English maths terms),
   "tips": string[] (2-4 exam tips or common mistakes)
 }
-SIMULATION RULES - build one EXCLUSIVELY for THIS question whenever a 2D graph helps:
+SIMULATION RULES - build 1-2 simulations EXCLUSIVELY for THIS question (never generic ones) whenever a 2D graph helps:
 - Choose the most instructive visual: the function and its derivative/integral, ODE solution curves for varying constants, Fourier partial sum vs target wave, Taylor polynomial vs true function, damped oscillator, probability density, Newton-Raphson iteration curve, etc.
 - Use "curves" (1-3) to plot related functions together; also set "expression" to the primary curve.
 - Every expression MUST be valid JavaScript math using only x, a, b, c, numbers, + - * / ( ) and the bare functions sin, cos, tan, sinh, cosh, tanh, asin, acos, atan, exp, log, sqrt, cbrt, abs, sign, pow, min, max (no "Math." prefix, no ** operator, expand series manually).
 - Give 1-3 sliders that genuinely change the mathematics and set "animateParam" to the best one (or null).
-- Only set available=false when no 2D graph could possibly help; then expression="", curves=[] and params=[].`;
+- If truly no 2D graph can help, return a single entry with available=false, expression="", curves=[] and params=[].
+Be concise: short strings, no filler, so the answer arrives fast.`;
 
 export const solveQuestion = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => SolveInput.parse(input))
