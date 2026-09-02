@@ -76,15 +76,26 @@ export type FormulaSheet = {
   reminders?: string[];
 };
 
-export type HinglishNotes = {
+export type NoteBlock = {
+  kind: "point" | "formula" | "box" | "callout" | "example" | "arrow";
+  text: string;
+  label?: string;
+};
+
+export type RichNotes = {
   title: string;
-  sections: { heading: string; lines: string[] }[];
+  language: "english" | "hinglish";
+  sections: {
+    heading: string;
+    color: "blue" | "purple" | "green" | "pink" | "amber";
+    blocks: NoteBlock[];
+  }[];
 };
 
 export type StudyPack = {
   topic: string;
   summary: string;
-  notes: string[];
+  notes?: string[];
   concepts: { term: string; definition: string }[];
   formulas: Formula[];
   examples: Example[];
