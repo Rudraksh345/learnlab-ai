@@ -69,21 +69,16 @@ export function StudyDashboard({ pack, onReset }: { pack: StudyPack; onReset: ()
 
         <div className="mt-4">
           <TabsContent value="notes" className="animate-in fade-in-50 space-y-4">
-            <Card className="shadow-[var(--shadow-card)]">
-              <CardHeader>
-                <CardTitle className="font-display">📝 Simple notes</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-3">
-                  {pack.notes?.map((n, i) => (
-                    <li key={i} className="flex gap-3 text-sm leading-relaxed">
-                      <span className="mt-1.5 size-2 shrink-0 rounded-full bg-gradient-hero" />
-                      <span>{n}</span>
-                    </li>
-                  ))}
-                </ul>
-              </CardContent>
-            </Card>
+            <NotesCanvas
+              context={JSON.stringify({
+                topic: pack.topic,
+                summary: pack.summary,
+                concepts: pack.concepts,
+                formulas: pack.formulas,
+                examples: pack.examples,
+                examPoints: pack.examPoints,
+              })}
+            />
 
             <Card className="shadow-[var(--shadow-card)]">
               <CardHeader>
