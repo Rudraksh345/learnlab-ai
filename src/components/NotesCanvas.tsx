@@ -8,7 +8,9 @@ import type { NoteBlock, RichNotes } from "@/lib/study-types";
 
 const hand = { fontFamily: "'Caveat', 'Segoe Script', cursive" } as const;
 
-const COLORS: Record<string, { text: string; bg: string; border: string }> = {
+type Palette = { text: string; bg: string; border: string };
+
+const COLORS: Record<string, Palette> = {
   blue: { text: "text-sky-600", bg: "bg-sky-500/10", border: "border-sky-500/40" },
   purple: { text: "text-violet-600", bg: "bg-violet-500/10", border: "border-violet-500/40" },
   green: { text: "text-emerald-600", bg: "bg-emerald-500/10", border: "border-emerald-500/40" },
@@ -16,7 +18,7 @@ const COLORS: Record<string, { text: string; bg: string; border: string }> = {
   amber: { text: "text-amber-600", bg: "bg-amber-500/10", border: "border-amber-500/40" },
 };
 
-function Block({ block, c }: { block: NoteBlock; c: (typeof COLORS)["blue"] }) {
+function Block({ block, c }: { block: NoteBlock; c: Palette }) {
   const label = block.label ? <span className="font-bold">{block.label}: </span> : null;
 
   if (block.kind === "formula")
@@ -151,7 +153,11 @@ export function NotesCanvas({ context }: { context: string }) {
             <h3 className="mb-5 text-3xl font-bold text-gradient">{notes.title}</h3>
             <div className="space-y-6">
               {notes.sections?.map((s, i) => {
-                const c = COLORS[s.color] ?? COLORS.blue;
+                const c: Palette = COLORS[s.color] ?? {
+                  text: "text-sky-600",
+                  bg: "bg-sky-500/10",
+                  border: "border-sky-500/40",
+                };
                 return (
                   <section key={i}>
                     <h4 className={`text-2xl font-bold ${c.text}`}>
