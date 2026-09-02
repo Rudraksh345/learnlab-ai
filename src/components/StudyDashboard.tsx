@@ -15,6 +15,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { QuizCard } from "@/components/QuizCard";
 import { SimulationCard } from "@/components/SimulationCard";
+import { NotesCanvas } from "@/components/NotesCanvas";
+import { FormulaSheetCard } from "@/components/FormulaSheetCard";
+import { StepExplain } from "@/components/StepExplain";
 import { TutorPanel } from "@/components/TutorPanel";
 import type { StudyPack } from "@/lib/study-types";
 
@@ -69,21 +72,16 @@ export function StudyDashboard({ pack, onReset }: { pack: StudyPack; onReset: ()
 
         <div className="mt-4">
           <TabsContent value="notes" className="animate-in fade-in-50 space-y-4">
-            <Card className="shadow-[var(--shadow-card)]">
-              <CardHeader>
-                <CardTitle className="font-display">📝 Simple notes</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-3">
-                  {pack.notes?.map((n, i) => (
-                    <li key={i} className="flex gap-3 text-sm leading-relaxed">
-                      <span className="mt-1.5 size-2 shrink-0 rounded-full bg-gradient-hero" />
-                      <span>{n}</span>
-                    </li>
-                  ))}
-                </ul>
-              </CardContent>
-            </Card>
+            <NotesCanvas
+              context={JSON.stringify({
+                topic: pack.topic,
+                summary: pack.summary,
+                concepts: pack.concepts,
+                formulas: pack.formulas,
+                examples: pack.examples,
+                examPoints: pack.examPoints,
+              })}
+            />
 
             <Card className="shadow-[var(--shadow-card)]">
               <CardHeader>
@@ -121,6 +119,9 @@ export function StudyDashboard({ pack, onReset }: { pack: StudyPack; onReset: ()
           </TabsContent>
 
           <TabsContent value="formulas" className="animate-in fade-in-50 space-y-4">
+            <FormulaSheetCard
+              context={JSON.stringify({ topic: pack.topic, formulas: pack.formulas, examPoints: pack.examPoints })}
+            />
             {pack.formulas?.map((f, i) => (
               <Card key={i} className="shadow-[var(--shadow-card)]">
                 <CardHeader className="pb-3">
@@ -162,7 +163,13 @@ export function StudyDashboard({ pack, onReset }: { pack: StudyPack; onReset: ()
                         <span className="flex size-6 shrink-0 items-center justify-center rounded-lg bg-gradient-hero text-xs font-semibold text-primary-foreground">
                           {si + 1}
                         </span>
-                        <span>{s}</span>
+                        <span className="min-w-0 flex-1">
+                          {s}
+                          <StepExplain
+                            step={s}
+                            context={`Topic: ${pack.topic}\nProblem: ${ex.problem}\nAnswer: ${ex.answer}`}
+                          />
+                        </span>
                       </li>
                     ))}
                   </ol>
@@ -197,7 +204,6 @@ export function StudyDashboard({ pack, onReset }: { pack: StudyPack; onReset: ()
               context={JSON.stringify({
                 topic: pack.topic,
                 summary: pack.summary,
-                notes: pack.notes,
                 concepts: pack.concepts,
                 formulas: pack.formulas,
                 examples: pack.examples,

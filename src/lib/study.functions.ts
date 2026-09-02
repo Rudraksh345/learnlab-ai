@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { callGateway, parseJsonLoose, type ChatMessage } from "./ai.server";
-import type { FormulaSheet, HinglishNotes, QuestionSolution, StudyPack } from "./study-types";
+import type { FormulaSheet, QuestionSolution, RichNotes, StudyPack } from "./study-types";
 
 const AnalyzeInput = z.object({
   fileName: z.string().min(1),
@@ -17,19 +17,18 @@ Respond with a SINGLE JSON object, no markdown, matching exactly this shape:
 {
   "topic": string,
   "summary": string (1-2 sentences),
-  "notes": string[] (6-10 short, simple bullet notes),
   "concepts": [{ "term": string, "definition": string }] (4-8 items),
   "formulas": [{ "name": string, "latexLike": string (plain readable math, e.g. "x = (-b ± √(b²-4ac)) / 2a"), "variables": [{"symbol": string, "meaning": string}], "usage": string }],
   "examples": [{ "title": string, "problem": string, "steps": string[], "answer": string, "difficulty": "easy"|"medium"|"hard" }] (EXACTLY 5, ordered easy → hard, at least one exam-level hard problem),
-  "simulations": [{ "available": boolean, "title": string, "description": string, "expression": string, "curves": [{"label": string, "expression": string}], "xMin": number, "xMax": number, "xLabel": string, "yLabel": string, "params": [{"key": "a"|"b"|"c", "label": string, "min": number, "max": number, "step": number, "default": number}], "animateParam": "a"|"b"|"c"|null, "insight": string }] (EXACTLY 5 DIFFERENT simulations, each exclusive to this page),
+  "simulations": [{ "available": boolean, "title": string, "description": string, "expression": string, "curves": [{"label": string, "expression": string}], "xMin": number, "xMax": number, "xLabel": string, "yLabel": string, "params": [{"key": "a"|"b"|"c", "label": string, "min": number, "max": number, "step": number, "default": number}], "animateParam": "a"|"b"|"c"|null, "insight": string }] (EXACTLY 1 polished simulation, exclusive to this page),
   "quiz": [{ "question": string, "options": string[4], "correctIndex": number, "explanation": string, "difficulty": "easy"|"medium"|"hard" }] (EXACTLY 12: first 10 simple (easy/medium), last 2 difficult exam-level),
   "examPoints": string[] (5-7 exam-focused points)
 }
-SIMULATION RULES — build EXACTLY 5 DIFFERENT, exclusive simulations derived from THIS page (never generic textbook defaults); each must visualise a different idea from the page:
-- Identify the concepts and choose the most instructive 2D visualisations, e.g. a function and its derivative/integral, solution curves of an ODE for varying constants, a Fourier partial sum vs the target wave, a Taylor polynomial vs the true function, a damped oscillator, a probability density, Newton-Raphson iteration curve, or a transformed vector-field cross-section.
+SIMULATION RULES — first identify the exact mathematical topic of THIS page, then build EXACTLY ONE highly polished interactive simulation exclusive to it (never a generic textbook default). It must visually explain WHY/HOW the concept works, not just show data:
+- Choose the single most instructive 2D visualisation, e.g. a function and its derivative/integral, solution curves of an ODE for varying constants, a Fourier partial sum vs the target wave, a Taylor polynomial vs the true function, a damped oscillator, a probability density, Newton-Raphson iteration curve, or a transformed vector-field cross-section.
 - Use "curves" (1-3 entries) to plot related functions together (e.g. {"label":"f(x)"} and {"label":"f'(x)"}), and set "expression" to the primary curve too.
 - Every expression MUST be valid JavaScript math using only x, a, b, c, numbers, + - * / ( ) and the bare functions sin, cos, tan, sinh, cosh, tanh, asin, acos, atan, exp, log, sqrt, cbrt, abs, sign, pow, min, max (no "Math." prefix, no ** operator, no summation/integral notation — expand series manually).
-- Give 1-3 sliders whose parameters genuinely change the mathematics, and set "animateParam" to the parameter most worth animating (or null).
+- Give 2-3 sliders whose parameters genuinely change the mathematics, and set "animateParam" to the parameter most worth animating (or null).
 - Every simulation must have available=true, a distinct title and a real insight tied to the page.
 Be concise: no filler text, keep each string short so the response is fast.
 Keep language simple and student-friendly. Never invent content unrelated to the page.`;
@@ -115,11 +114,11 @@ Respond with a SINGLE JSON object, no markdown, matching exactly:
   "approach": string (1-2 sentences: the plan/method),
   "steps": [{ "title": string (short step name), "detail": string (the working, simple math notation) }] (4-8 steps),
   "answer": string (final answer, clearly stated),
-  "simulations": [{ "available": boolean, "title": string, "description": string, "expression": string, "curves": [{"label": string, "expression": string}], "xMin": number, "xMax": number, "xLabel": string, "yLabel": string, "params": [{"key": "a"|"b"|"c", "label": string, "min": number, "max": number, "step": number, "default": number}], "animateParam": "a"|"b"|"c"|null, "insight": string }] (1-2 simulations designed EXCLUSIVELY for this question),
+  "simulations": [{ "available": boolean, "title": string, "description": string, "expression": string, "curves": [{"label": string, "expression": string}], "xMin": number, "xMax": number, "xLabel": string, "yLabel": string, "params": [{"key": "a"|"b"|"c", "label": string, "min": number, "max": number, "step": number, "default": number}], "animateParam": "a"|"b"|"c"|null, "insight": string }] (EXACTLY 1 polished simulation designed EXCLUSIVELY for this question),
   "hinglish": string[] (4-7 bullets explaining BOTH the concept and the solution naturally in Hinglish - Hindi in Roman script mixed with English maths terms),
   "tips": string[] (2-4 exam tips or common mistakes)
 }
-SIMULATION RULES - build 1-2 simulations EXCLUSIVELY for THIS question (never generic ones) whenever a 2D graph helps:
+SIMULATION RULES - identify the exact topic of THIS question, then build EXACTLY ONE polished interactive simulation exclusive to it (never a generic one). It must show WHY/HOW the concept works with live cause-and-effect, not just data:
 - Choose the most instructive visual: the function and its derivative/integral, ODE solution curves for varying constants, Fourier partial sum vs target wave, Taylor polynomial vs true function, damped oscillator, probability density, Newton-Raphson iteration curve, etc.
 - Use "curves" (1-3) to plot related functions together; also set "expression" to the primary curve.
 - Every expression MUST be valid JavaScript math using only x, a, b, c, numbers, + - * / ( ) and the bare functions sin, cos, tan, sinh, cosh, tanh, asin, acos, atan, exp, log, sqrt, cbrt, abs, sign, pow, min, max (no "Math." prefix, no ** operator, expand series manually).
@@ -216,26 +215,43 @@ export const makeFormulaSheet = createServerFn({ method: "POST" })
     return parseJsonLoose<FormulaSheet>(raw);
   });
 
-const NotesInput = z.object({ context: z.string().min(1).max(20000) });
+const NotesInput = z.object({
+  context: z.string().min(1).max(20000),
+  language: z.enum(["english", "hinglish"]),
+});
 
-const HINGLISH_NOTES_PROMPT = `You are an Engineering Mathematics teacher writing handwritten-style class notes in natural Hinglish (Hindi in Roman script mixed with English maths terms).
-Keep it simple and friendly, like a topper's notebook. All mathematical notation, formulas, signs, powers and conditions MUST stay accurate and clearly readable in plain math text.
+const RICH_NOTES_PROMPT = `You are an Engineering Mathematics teacher writing PREMIUM handwritten-style revision notes for a topper's notebook.
+Base the notes ONLY on the material given, but add short helpful explanations where they aid understanding.
+Mathematical accuracy is critical: never alter signs, powers, fractions, symbols, subscripts or notation; write formulas in clean readable plain math text (e.g. "d/dx(x^n) = n·x^(n-1)", "∫ dx/(1+x²) = tan⁻¹x + C").
 Respond with a SINGLE JSON object, no markdown:
 {
   "title": string,
-  "sections": [{ "heading": string, "lines": string[] (3-6 short lines each) }] (4-7 sections)
+  "language": "english" | "hinglish",
+  "sections": [{
+    "heading": string,
+    "color": "blue" | "purple" | "green" | "pink" | "amber",
+    "blocks": [{ "kind": "point" | "formula" | "box" | "callout" | "example" | "arrow", "text": string, "label": string }]
+  }] (4-7 sections, 3-6 blocks each, vary colours and block kinds)
 }
-Be concise, no filler.`;
+Block kinds: "point" = bullet idea, "formula" = boxed formula, "box" = key definition, "callout" = important/exam warning, "example" = tiny solved example, "arrow" = a "therefore / leads to" line. "label" is a 1-3 word tag (may be "").
+Keep each text short (one or two lines), lively and student-friendly. No filler.`;
 
-export const hinglishNotes = createServerFn({ method: "POST" })
+export const richNotes = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => NotesInput.parse(input))
   .handler(async ({ data }) => {
     const raw = await callGateway(
       [
-        { role: "system", content: HINGLISH_NOTES_PROMPT },
+        {
+          role: "system",
+          content:
+            RICH_NOTES_PROMPT +
+            (data.language === "hinglish"
+              ? "\nWrite EVERY text naturally in Hinglish (Hindi in Roman script mixed with English maths terms), but keep all maths notation exactly accurate."
+              : "\nWrite every text in simple clear English."),
+        },
         { role: "user", content: `Material:\n${data.context}` },
       ],
       { json: true },
     );
-    return parseJsonLoose<HinglishNotes>(raw);
+    return parseJsonLoose<RichNotes>(raw);
   });

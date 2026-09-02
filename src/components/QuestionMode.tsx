@@ -18,6 +18,7 @@ import { Badge } from "@/components/ui/badge";
 import { SimulationCard } from "@/components/SimulationCard";
 import { StepExplain } from "@/components/StepExplain";
 import { FormulaSheetCard } from "@/components/FormulaSheetCard";
+import { NotesCanvas } from "@/components/NotesCanvas";
 import { TutorPanel } from "@/components/TutorPanel";
 import { solveQuestion } from "@/lib/study.functions";
 import type { QuestionSolution } from "@/lib/study-types";
@@ -245,6 +246,24 @@ export function QuestionMode() {
               </CardContent>
             )}
           </Card>
+          <NotesCanvas context={JSON.stringify({
+              question: result.question,
+              topic: result.topic,
+              meaning: result.meaning,
+              approach: result.approach,
+              steps: result.steps,
+              answer: result.answer,
+              tips: result.tips,
+            })} />
+          <FormulaSheetCard context={JSON.stringify({
+              question: result.question,
+              topic: result.topic,
+              meaning: result.meaning,
+              approach: result.approach,
+              steps: result.steps,
+              answer: result.answer,
+              tips: result.tips,
+            })} />
           <TutorPanel
             topic={result.topic}
             context={JSON.stringify({

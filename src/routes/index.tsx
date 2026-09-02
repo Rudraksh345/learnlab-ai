@@ -17,13 +17,13 @@ export const Route = createFileRoute("/")({
       {
         name: "description",
         content:
-          "Upload one page of maths notes and get concise notes, formulas, solved examples, 5 interactive visualizers, a 12-question quiz and an AI tutor.",
+          "Upload one page of maths notes and get handwritten notes, formulas, solved examples, an exclusive interactive simulation, a 12-question quiz and an AI tutor.",
       },
       { property: "og:title", content: "masterMath — AI Study Dashboard for Mathematics" },
       {
         property: "og:description",
         content:
-          "One upload, one dashboard: notes, concepts, formulas, examples, simulation, quiz and a Hinglish-friendly AI math tutor.",
+          "One upload, one dashboard: handwritten notes, concepts, formulas, examples, an exclusive simulation, quiz and a Hinglish-friendly AI math tutor.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -78,8 +78,8 @@ function Index() {
                 <span className="text-gradient">masterMath</span>
               </h1>
               <p className="mt-3 max-w-xl text-sm text-muted-foreground sm:text-base">
-                Upload one page of your notes and get a complete dashboard: simple notes, key
-                concepts, formulas, solved examples, 5 interactive visualizers, a 12-question quiz
+                Upload one page of your notes and get a complete dashboard: colourful handwritten notes, key
+                concepts, formulas, solved examples, an exclusive interactive simulation, a 12-question quiz
                 and your own AI math tutor.
               </p>
             </>
