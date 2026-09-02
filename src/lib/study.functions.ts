@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { callGateway, parseJsonLoose, type ChatMessage } from "./ai.server";
-import type { FormulaSheet, HinglishNotes, QuestionSolution, StudyPack } from "./study-types";
+import type { FormulaSheet, QuestionSolution, RichNotes, StudyPack } from "./study-types";
 
 const AnalyzeInput = z.object({
   fileName: z.string().min(1),
@@ -216,26 +216,43 @@ export const makeFormulaSheet = createServerFn({ method: "POST" })
     return parseJsonLoose<FormulaSheet>(raw);
   });
 
-const NotesInput = z.object({ context: z.string().min(1).max(20000) });
+const NotesInput = z.object({
+  context: z.string().min(1).max(20000),
+  language: z.enum(["english", "hinglish"]),
+});
 
-const HINGLISH_NOTES_PROMPT = `You are an Engineering Mathematics teacher writing handwritten-style class notes in natural Hinglish (Hindi in Roman script mixed with English maths terms).
-Keep it simple and friendly, like a topper's notebook. All mathematical notation, formulas, signs, powers and conditions MUST stay accurate and clearly readable in plain math text.
+const RICH_NOTES_PROMPT = `You are an Engineering Mathematics teacher writing PREMIUM handwritten-style revision notes for a topper's notebook.
+Base the notes ONLY on the material given, but add short helpful explanations where they aid understanding.
+Mathematical accuracy is critical: never alter signs, powers, fractions, symbols, subscripts or notation; write formulas in clean readable plain math text (e.g. "d/dx(x^n) = n·x^(n-1)", "∫ dx/(1+x²) = tan⁻¹x + C").
 Respond with a SINGLE JSON object, no markdown:
 {
   "title": string,
-  "sections": [{ "heading": string, "lines": string[] (3-6 short lines each) }] (4-7 sections)
+  "language": "english" | "hinglish",
+  "sections": [{
+    "heading": string,
+    "color": "blue" | "purple" | "green" | "pink" | "amber",
+    "blocks": [{ "kind": "point" | "formula" | "box" | "callout" | "example" | "arrow", "text": string, "label": string }]
+  }] (4-7 sections, 3-6 blocks each, vary colours and block kinds)
 }
-Be concise, no filler.`;
+Block kinds: "point" = bullet idea, "formula" = boxed formula, "box" = key definition, "callout" = important/exam warning, "example" = tiny solved example, "arrow" = a "therefore / leads to" line. "label" is a 1-3 word tag (may be "").
+Keep each text short (one or two lines), lively and student-friendly. No filler.`;
 
-export const hinglishNotes = createServerFn({ method: "POST" })
+export const richNotes = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => NotesInput.parse(input))
   .handler(async ({ data }) => {
     const raw = await callGateway(
       [
-        { role: "system", content: HINGLISH_NOTES_PROMPT },
+        {
+          role: "system",
+          content:
+            RICH_NOTES_PROMPT +
+            (data.language === "hinglish"
+              ? "\nWrite EVERY text naturally in Hinglish (Hindi in Roman script mixed with English maths terms), but keep all maths notation exactly accurate."
+              : "\nWrite every text in simple clear English."),
+        },
         { role: "user", content: `Material:\n${data.context}` },
       ],
       { json: true },
     );
-    return parseJsonLoose<HinglishNotes>(raw);
+    return parseJsonLoose<RichNotes>(raw);
   });
