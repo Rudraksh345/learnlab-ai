@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { callGateway, parseJsonLoose, type ChatMessage } from "./ai.server";
+import { callGateway, parseJsonLoose, FAST_MODEL, type ChatMessage } from "./ai.server";
 import type { FormulaSheet, QuestionSolution, RichNotes, StudyPack } from "./study-types";
 
 const AnalyzeInput = z.object({
@@ -20,16 +20,18 @@ Respond with a SINGLE JSON object, no markdown, matching exactly this shape:
   "concepts": [{ "term": string, "definition": string }] (4-8 items),
   "formulas": [{ "name": string, "latexLike": string (plain readable math, e.g. "x = (-b ± √(b²-4ac)) / 2a"), "variables": [{"symbol": string, "meaning": string}], "usage": string }],
   "examples": [{ "title": string, "problem": string, "steps": string[], "answer": string, "difficulty": "easy"|"medium"|"hard" }] (EXACTLY 5, ordered easy → hard, at least one exam-level hard problem),
-  "simulations": [{ "available": boolean, "title": string, "description": string, "expression": string, "curves": [{"label": string, "expression": string}], "xMin": number, "xMax": number, "xLabel": string, "yLabel": string, "params": [{"key": "a"|"b"|"c", "label": string, "min": number, "max": number, "step": number, "default": number}], "animateParam": "a"|"b"|"c"|null, "insight": string }] (EXACTLY 1 polished simulation, exclusive to this page),
+  "simulations": [{ "available": boolean, "mode": "graph"|"vector"|"parametric", "title": string, "description": string, "expression": string, "curves": [{"label": string, "expression": string}], "vectors": [{"label": string, "x": string, "y": string}], "parametric": [{"label": string, "xExpr": string, "yExpr": string}], "tangent": boolean, "area": boolean, "xMin": number, "xMax": number, "xLabel": string, "yLabel": string, "params": [{"key": "a"|"b"|"c", "label": string, "min": number, "max": number, "step": number, "default": number}], "animateParam": "a"|"b"|"c"|null, "insight": string }], "xMin": number, "xMax": number, "xLabel": string, "yLabel": string, "params": [{"key": "a"|"b"|"c", "label": string, "min": number, "max": number, "step": number, "default": number}], "animateParam": "a"|"b"|"c"|null, "insight": string }] (EXACTLY 1 polished simulation, exclusive to this page),
   "quiz": [{ "question": string, "options": string[4], "correctIndex": number, "explanation": string, "difficulty": "easy"|"medium"|"hard" }] (EXACTLY 12: first 10 simple (easy/medium), last 2 difficult exam-level),
   "examPoints": string[] (5-7 exam-focused points)
 }
-SIMULATION RULES — first identify the exact mathematical topic of THIS page, then build EXACTLY ONE highly polished interactive simulation exclusive to it (never a generic textbook default). It must visually explain WHY/HOW the concept works, not just show data:
-- Choose the single most instructive 2D visualisation, e.g. a function and its derivative/integral, solution curves of an ODE for varying constants, a Fourier partial sum vs the target wave, a Taylor polynomial vs the true function, a damped oscillator, a probability density, Newton-Raphson iteration curve, or a transformed vector-field cross-section.
-- Use "curves" (1-3 entries) to plot related functions together (e.g. {"label":"f(x)"} and {"label":"f'(x)"}), and set "expression" to the primary curve too.
-- Every expression MUST be valid JavaScript math using only x, a, b, c, numbers, + - * / ( ) and the bare functions sin, cos, tan, sinh, cosh, tanh, asin, acos, atan, exp, log, sqrt, cbrt, abs, sign, pow, min, max (no "Math." prefix, no ** operator, no summation/integral notation — expand series manually).
-- Give 2-3 sliders whose parameters genuinely change the mathematics, and set "animateParam" to the parameter most worth animating (or null).
-- Every simulation must have available=true, a distinct title and a real insight tied to the page.
+SIMULATION RULES — first identify the exact mathematical topic, then build EXACTLY ONE polished INTERACTIVE simulation exclusive to it (never a generic textbook graph). It must let the student manipulate the maths and see live cause-and-effect.
+Pick the "mode" that truly fits the detected topic:
+- "vector" for vectors / vector algebra / forces / complex numbers as arrows / dot & cross products: fill "vectors" with 1-3 entries {"label","x","y"} whose x,y are expressions in a,b,c (e.g. {"label":"v","x":"a","y":"b"}). The student can DRAG the arrow tip, which live-updates the a,b sliders, magnitudes, angle, dot and cross products. Set xMin/xMax to a symmetric range like -6/6.
+- "parametric" for curves, geometry, circles/ellipses, projectile paths, polar-like curves, Lissajous, phase portraits: fill "parametric" with 1-3 entries {"label","xExpr","yExpr"} in terms of x (used as the parameter t) and a,b,c; xMin/xMax are the t-range.
+- "graph" (default) for functions, calculus, ODE solutions, transforms, probability densities, numerical methods: use "curves" (1-3) plus "expression". For calculus set "tangent": true to show a draggable moving tangent line with live slope; for integrals/areas/probability set "area": true to shade and compute the live area from 0 to the dragged point.
+Always: the probe point is DRAGGABLE directly on the canvas, 2-3 sliders must genuinely change the mathematics, and "animateParam" is the parameter most worth animating (or null).
+- Every expression MUST be valid JavaScript math using only x, a, b, c, numbers, + - * / ( ) and the bare functions sin, cos, tan, sinh, cosh, tanh, asin, acos, atan, exp, log, sqrt, cbrt, abs, sign, pow, min, max (no "Math." prefix, no ** operator, expand series manually).
+- available=true, a distinct title, and an "insight" that explains WHY the visual behaves that way.
 Be concise: no filler text, keep each string short so the response is fast.
 Keep language simple and student-friendly. Never invent content unrelated to the page.`;
 
@@ -112,18 +114,20 @@ Respond with a SINGLE JSON object, no markdown, matching exactly:
   "topic": string (short topic name),
   "meaning": string[] (3-5 bullets: what the question is actually asking, in very simple words),
   "approach": string (1-2 sentences: the plan/method),
-  "steps": [{ "title": string (short step name), "detail": string (the working, simple math notation) }] (4-8 steps),
+  "steps": [{ "title": string (short step name), "detail": string (the working, simple math notation) }] (3-6 steps),
   "answer": string (final answer, clearly stated),
-  "simulations": [{ "available": boolean, "title": string, "description": string, "expression": string, "curves": [{"label": string, "expression": string}], "xMin": number, "xMax": number, "xLabel": string, "yLabel": string, "params": [{"key": "a"|"b"|"c", "label": string, "min": number, "max": number, "step": number, "default": number}], "animateParam": "a"|"b"|"c"|null, "insight": string }] (EXACTLY 1 polished simulation designed EXCLUSIVELY for this question),
+  "simulations": [{ "available": boolean, "mode": "graph"|"vector"|"parametric", "title": string, "description": string, "expression": string, "curves": [{"label": string, "expression": string}], "vectors": [{"label": string, "x": string, "y": string}], "parametric": [{"label": string, "xExpr": string, "yExpr": string}], "tangent": boolean, "area": boolean, "xMin": number, "xMax": number, "xLabel": string, "yLabel": string, "params": [{"key": "a"|"b"|"c", "label": string, "min": number, "max": number, "step": number, "default": number}], "animateParam": "a"|"b"|"c"|null, "insight": string }], "xMin": number, "xMax": number, "xLabel": string, "yLabel": string, "params": [{"key": "a"|"b"|"c", "label": string, "min": number, "max": number, "step": number, "default": number}], "animateParam": "a"|"b"|"c"|null, "insight": string }] (EXACTLY 1 polished simulation designed EXCLUSIVELY for this question),
   "hinglish": string[] (4-7 bullets explaining BOTH the concept and the solution naturally in Hinglish - Hindi in Roman script mixed with English maths terms),
   "tips": string[] (2-4 exam tips or common mistakes)
 }
-SIMULATION RULES - identify the exact topic of THIS question, then build EXACTLY ONE polished interactive simulation exclusive to it (never a generic one). It must show WHY/HOW the concept works with live cause-and-effect, not just data:
-- Choose the most instructive visual: the function and its derivative/integral, ODE solution curves for varying constants, Fourier partial sum vs target wave, Taylor polynomial vs true function, damped oscillator, probability density, Newton-Raphson iteration curve, etc.
-- Use "curves" (1-3) to plot related functions together; also set "expression" to the primary curve.
+SIMULATION RULES — first identify the exact mathematical topic, then build EXACTLY ONE polished INTERACTIVE simulation exclusive to it (never a generic textbook graph). It must let the student manipulate the maths and see live cause-and-effect.
+Pick the "mode" that truly fits the detected topic:
+- "vector" for vectors / vector algebra / forces / complex numbers as arrows / dot & cross products: fill "vectors" with 1-3 entries {"label","x","y"} whose x,y are expressions in a,b,c (e.g. {"label":"v","x":"a","y":"b"}). The student can DRAG the arrow tip, which live-updates the a,b sliders, magnitudes, angle, dot and cross products. Set xMin/xMax to a symmetric range like -6/6.
+- "parametric" for curves, geometry, circles/ellipses, projectile paths, polar-like curves, Lissajous, phase portraits: fill "parametric" with 1-3 entries {"label","xExpr","yExpr"} in terms of x (used as the parameter t) and a,b,c; xMin/xMax are the t-range.
+- "graph" (default) for functions, calculus, ODE solutions, transforms, probability densities, numerical methods: use "curves" (1-3) plus "expression". For calculus set "tangent": true to show a draggable moving tangent line with live slope; for integrals/areas/probability set "area": true to shade and compute the live area from 0 to the dragged point.
+Always: the probe point is DRAGGABLE directly on the canvas, 2-3 sliders must genuinely change the mathematics, and "animateParam" is the parameter most worth animating (or null).
 - Every expression MUST be valid JavaScript math using only x, a, b, c, numbers, + - * / ( ) and the bare functions sin, cos, tan, sinh, cosh, tanh, asin, acos, atan, exp, log, sqrt, cbrt, abs, sign, pow, min, max (no "Math." prefix, no ** operator, expand series manually).
-- Give 1-3 sliders that genuinely change the mathematics and set "animateParam" to the best one (or null).
-- If truly no 2D graph can help, return a single entry with available=false, expression="", curves=[] and params=[].
+- available=true, a distinct title, and an "insight" that explains WHY the visual behaves that way.
 Be concise: short strings, no filler, so the answer arrives fast.`;
 
 export const solveQuestion = createServerFn({ method: "POST" })
@@ -184,7 +188,7 @@ ${data.hinglish ? "Reply in natural Hinglish (Hindi in Roman script with English
         role: "user",
         content: `Full solution context (for reference only):\n${data.context}\n\nExplain ONLY this step:\n${data.step}`,
       },
-    ]);
+    ], { model: FAST_MODEL });
     return { reply };
   });
 
@@ -210,7 +214,7 @@ export const makeFormulaSheet = createServerFn({ method: "POST" })
         { role: "system", content: SHEET_PROMPT },
         { role: "user", content: `Material:\n${data.context}` },
       ],
-      { json: true },
+      { json: true, model: FAST_MODEL },
     );
     return parseJsonLoose<FormulaSheet>(raw);
   });
