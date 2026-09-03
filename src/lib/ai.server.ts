@@ -14,7 +14,7 @@ export type ChatMessage = {
 
 export async function callGateway(
   messages: ChatMessage[],
-  opts: { json?: boolean } = {}
+  opts: { json?: boolean; model?: string } = {}
 ): Promise<string> {
   const apiKey = process.env["LOVABLE_API_KEY"];
   if (!apiKey) {
