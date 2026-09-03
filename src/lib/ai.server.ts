@@ -28,7 +28,7 @@ export async function callGateway(
       "Lovable-API-Key": apiKey,
     },
     body: JSON.stringify({
-      model: MODEL,
+      model: opts.model ?? MODEL,
       messages,
       service_tier: "priority",
       ...(opts.json ? { response_format: { type: "json_object" } } : {}),
