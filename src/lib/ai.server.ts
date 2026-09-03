@@ -1,4 +1,6 @@
 const MODEL = "google/gemini-3.7-flash";
+/** Small, very fast model for short helper calls (step explains, sheets, notes). */
+export const FAST_MODEL = "google/gemini-3.1-flash-lite";
 
 export type Block =
   | { type: "text"; text: string }
@@ -12,7 +14,7 @@ export type ChatMessage = {
 
 export async function callGateway(
   messages: ChatMessage[],
-  opts: { json?: boolean } = {}
+  opts: { json?: boolean; model?: string } = {}
 ): Promise<string> {
   const apiKey = process.env["LOVABLE_API_KEY"];
   if (!apiKey) {
@@ -26,7 +28,7 @@ export async function callGateway(
       "Lovable-API-Key": apiKey,
     },
     body: JSON.stringify({
-      model: MODEL,
+      model: opts.model ?? MODEL,
       messages,
       service_tier: "priority",
       ...(opts.json ? { response_format: { type: "json_object" } } : {}),

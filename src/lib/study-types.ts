@@ -28,8 +28,33 @@ export type SimCurve = {
   expression: string;
 };
 
+export type SimVector = {
+  label: string;
+  /** expression in a, b, c */
+  x: string;
+  /** expression in a, b, c */
+  y: string;
+};
+
+export type SimParametric = {
+  label: string;
+  /** expression in x (used as parameter t) and a, b, c */
+  xExpr: string;
+  yExpr: string;
+};
+
 export type Simulation = {
   available: boolean;
+  /** what kind of interactive lab to render */
+  mode?: "graph" | "vector" | "parametric";
+  /** vector mode: draggable arrows */
+  vectors?: SimVector[];
+  /** parametric mode: (x(t), y(t)) curves */
+  parametric?: SimParametric[];
+  /** graph mode: show a live tangent line at the dragged point */
+  tangent?: boolean;
+  /** graph mode: shade + measure the area from 0 to the dragged point */
+  area?: boolean;
   title: string;
   description: string;
   /** JS math expression in terms of x, a, b, c. e.g. "a*x*x + b*x + c" */
