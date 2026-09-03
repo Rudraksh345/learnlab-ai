@@ -1,4 +1,6 @@
 const MODEL = "google/gemini-3.7-flash";
+/** Small, very fast model for short helper calls (step explains, sheets, notes). */
+export const FAST_MODEL = "google/gemini-3.1-flash-lite";
 
 export type Block =
   | { type: "text"; text: string }
