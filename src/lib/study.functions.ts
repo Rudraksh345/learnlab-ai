@@ -208,7 +208,8 @@ Respond with a SINGLE JSON object, no markdown:
   "sections": [{ "heading": string, "items": [{ "name": string, "formula": string, "condition": string (validity condition or "" ) }] }] (2-5 sections, 2-6 items each),
   "reminders": string[] (2-4 short accuracy reminders about signs/conditions)
 }
-Be concise.`;
+Be concise.
+MATH FORMATTING: write every formula as LaTeX wrapped in $...$ (inline) or $$...$$ (display). Never use markdown bold/italics. Use $ ONLY as a LaTeX delimiter.`;
 
 export const makeFormulaSheet = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => SheetInput.parse(input))
