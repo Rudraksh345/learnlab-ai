@@ -240,7 +240,7 @@ export function QuestionMode() {
                   {result.hinglish?.map((h, i) => (
                     <li key={i} className="flex gap-3 text-sm leading-relaxed">
                       <span className="mt-1.5 size-2 shrink-0 rounded-full bg-gradient-hero" />
-                      <span>{h}</span>
+                      <span><MathText>{h}</MathText></span>
                     </li>
                   ))}
                 </ul>
