@@ -47,7 +47,7 @@ function parse(input: string): Piece[] {
     let m = /^\$\$([\s\S]+?)\$\$/.exec(rest) || /^\\\[([\s\S]+?)\\\]/.exec(rest);
     if (m) {
       push();
-      pieces.push({ t: "math", v: m[1], display: true });
+      pieces.push({ t: "math", v: (m[1] ?? ""), display: true });
       i += m[0].length;
       continue;
     }
@@ -56,16 +56,16 @@ function parse(input: string): Piece[] {
     m = /^\\\(([\s\S]+?)\\\)/.exec(rest);
     if (m) {
       push();
-      pieces.push({ t: "math", v: m[1], display: false });
+      pieces.push({ t: "math", v: (m[1] ?? ""), display: false });
       i += m[0].length;
       continue;
     }
 
     // $ ... $  — only when the content actually looks like math
     m = /^\$([^$\n]+?)\$/.exec(rest);
-    if (m && looksLikeMath(m[1])) {
+    if (m && looksLikeMath((m[1] ?? ""))) {
       push();
-      pieces.push({ t: "math", v: m[1], display: false });
+      pieces.push({ t: "math", v: (m[1] ?? ""), display: false });
       i += m[0].length;
       continue;
     }
@@ -74,7 +74,7 @@ function parse(input: string): Piece[] {
     m = /^\*\*([^\n*][\s\S]*?)\*\*/.exec(rest);
     if (m) {
       push();
-      pieces.push({ t: "bold", v: m[1] });
+      pieces.push({ t: "bold", v: (m[1] ?? "") });
       i += m[0].length;
       continue;
     }
