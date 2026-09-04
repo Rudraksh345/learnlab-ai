@@ -1,3 +1,4 @@
+import { MathText } from "@/components/MathText";
 import { useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { Loader2, NotebookPen } from "lucide-react";
@@ -57,14 +58,14 @@ export function FormulaSheetCard({ context }: { context: string }) {
             <div className="space-y-5">
               {sheet.sections?.map((s, i) => (
                 <div key={i}>
-                  <p className="text-xl font-bold underline decoration-primary/50">{s.heading}</p>
+                  <p className="text-xl font-bold underline decoration-primary/50"><MathText>{s.heading}</MathText></p>
                   <ul className="mt-2 space-y-2">
                     {s.items?.map((it, j) => (
                       <li key={j} className="text-lg leading-8">
-                        <span className="font-bold">{it.name}: </span>
-                        <span>{it.formula}</span>
+                        <span className="font-bold"><MathText>{it.name}</MathText>: </span>
+                        <span><MathText>{it.formula}</MathText></span>
                         {it.condition ? (
-                          <span className="text-muted-foreground"> ({it.condition})</span>
+                          <span className="text-muted-foreground"> (<MathText>{it.condition}</MathText>)</span>
                         ) : null}
                       </li>
                     ))}
@@ -76,7 +77,7 @@ export function FormulaSheetCard({ context }: { context: string }) {
               <div className="mt-5 border-t border-border pt-3">
                 {sheet.reminders.map((r, i) => (
                   <p key={i} className="text-lg leading-7">
-                    ★ {r}
+                    ★ <MathText>{r}</MathText>
                   </p>
                 ))}
               </div>

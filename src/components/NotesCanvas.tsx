@@ -1,3 +1,4 @@
+import { MathText } from "@/components/MathText";
 import { useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { Loader2, PenLine, Sparkles } from "lucide-react";
@@ -27,7 +28,7 @@ function Block({ block, c }: { block: NoteBlock; c: Palette }) {
         className={`rounded-xl border-2 ${c.border} ${c.bg} px-4 py-2 text-center text-xl font-bold`}
       >
         {label}
-        {block.text}
+        <MathText>{block.text}</MathText>
       </div>
     );
 
@@ -35,7 +36,7 @@ function Block({ block, c }: { block: NoteBlock; c: Palette }) {
     return (
       <div className={`rounded-xl border-2 border-dashed ${c.border} px-4 py-2 text-lg leading-7`}>
         {label}
-        {block.text}
+        <MathText>{block.text}</MathText>
       </div>
     );
 
@@ -45,7 +46,7 @@ function Block({ block, c }: { block: NoteBlock; c: Palette }) {
         <span className="mr-1">⭐</span>
         {label}
         <span className="underline decoration-wavy decoration-1 underline-offset-4">
-          {block.text}
+          <MathText>{block.text}</MathText>
         </span>
       </div>
     );
@@ -55,7 +56,7 @@ function Block({ block, c }: { block: NoteBlock; c: Palette }) {
       <div className="rounded-xl bg-muted px-4 py-2 text-lg leading-7">
         <span className="mr-1">✏️</span>
         {label}
-        {block.text}
+        <MathText>{block.text}</MathText>
       </div>
     );
 
@@ -63,14 +64,14 @@ function Block({ block, c }: { block: NoteBlock; c: Palette }) {
     return (
       <p className={`pl-4 text-lg leading-7 ${c.text}`}>
         ➜ {label}
-        {block.text}
+        <MathText>{block.text}</MathText>
       </p>
     );
 
   return (
     <p className="text-lg leading-8">
       • {label}
-      {block.text}
+      <MathText>{block.text}</MathText>
     </p>
   );
 }
@@ -161,7 +162,7 @@ export function NotesCanvas({ context }: { context: string }) {
                 return (
                   <section key={i}>
                     <h4 className={`text-2xl font-bold ${c.text}`}>
-                      <span className={`rounded-md px-1 ${c.bg}`}>{s.heading}</span>
+                      <span className={`rounded-md px-1 ${c.bg}`}><MathText>{s.heading}</MathText></span>
                     </h4>
                     <div className={`mt-2 space-y-2 border-l-2 pl-4 ${c.border}`}>
                       {s.blocks?.map((b, j) => (

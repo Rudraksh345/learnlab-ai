@@ -33,6 +33,7 @@ Always: the probe point is DRAGGABLE directly on the canvas, 2-3 sliders must ge
 - Every expression MUST be valid JavaScript math using only x, a, b, c, numbers, + - * / ( ) and the bare functions sin, cos, tan, sinh, cosh, tanh, asin, acos, atan, exp, log, sqrt, cbrt, abs, sign, pow, min, max (no "Math." prefix, no ** operator, expand series manually).
 - available=true, a distinct title, and an "insight" that explains WHY the visual behaves that way.
 Be concise: no filler text, keep each string short so the response is fast.
+MATH FORMATTING: write every mathematical expression as LaTeX wrapped in $...$ (inline) or $$...$$ (display block). Never use markdown bold/italics (**, *, _) anywhere. Use $ ONLY as a LaTeX delimiter; if you must mention money, write it in words (e.g. "50 dollars").
 Keep language simple and student-friendly. Never invent content unrelated to the page.`;
 
 export const analyzePage = createServerFn({ method: "POST" })
@@ -82,7 +83,8 @@ export const askTutor = createServerFn({ method: "POST" })
         content: `You are the ThinkMate AI Engineering Mathematics Tutor, expert in calculus, differential equations, matrices and linear algebra, vector calculus, complex analysis, Fourier and Laplace transforms, probability, statistics and numerical methods.
 You may ONLY use the student's uploaded page and the study material below. If something is outside it, say so briefly and steer back to the page.
 Always verify every calculation before answering; never state an unchecked result.
-Be warm, concise and use short numbered steps, bullet points and simple math notation.
+Be warm, concise and use short numbered steps and bullet points.
+MATH FORMATTING: write every mathematical expression as LaTeX wrapped in $...$ (inline) or $$...$$ (display block). Never use markdown bold/italics (**, *, _) anywhere. Use $ ONLY as a LaTeX delimiter; if you must mention money, write it in words (e.g. "50 dollars").
 ${data.hinglish ? "Reply in Hinglish (Hindi written in Roman script mixed with English maths terms)." : "Reply in simple English."}
 
 STUDY MATERIAL:
@@ -128,7 +130,8 @@ Pick the "mode" that truly fits the detected topic:
 Always: the probe point is DRAGGABLE directly on the canvas, 2-3 sliders must genuinely change the mathematics, and "animateParam" is the parameter most worth animating (or null).
 - Every expression MUST be valid JavaScript math using only x, a, b, c, numbers, + - * / ( ) and the bare functions sin, cos, tan, sinh, cosh, tanh, asin, acos, atan, exp, log, sqrt, cbrt, abs, sign, pow, min, max (no "Math." prefix, no ** operator, expand series manually).
 - available=true, a distinct title, and an "insight" that explains WHY the visual behaves that way.
-Be concise: short strings, no filler, so the answer arrives fast.`;
+Be concise: short strings, no filler, so the answer arrives fast.
+MATH FORMATTING: write every mathematical expression as LaTeX wrapped in $...$ (inline) or $$...$$ (display block). Never use markdown bold/italics (**, *, _) anywhere. Use $ ONLY as a LaTeX delimiter; if you must mention money, write it in words (e.g. "50 dollars").`;
 
 export const solveQuestion = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => SolveInput.parse(input))
@@ -182,6 +185,7 @@ export const explainStep = createServerFn({ method: "POST" })
         role: "system",
         content: `You are an Engineering Mathematics professor. Explain ONLY the single solution step given, in very simple, student-friendly language.
 Verify the mathematics before answering. 3-5 short lines max: what is being done, why it is done, and the rule/formula used. No extra steps, no filler.
+MATH FORMATTING: write every mathematical expression as LaTeX wrapped in $...$ (inline) or $$...$$ (display block). Never use markdown bold/italics (**, *, _) anywhere. Use $ ONLY as a LaTeX delimiter; if you must mention money, write it in words (e.g. "50 dollars").
 ${data.hinglish ? "Reply in natural Hinglish (Hindi in Roman script with English maths terms)." : "Reply in simple English."}`,
       },
       {
@@ -204,7 +208,8 @@ Respond with a SINGLE JSON object, no markdown:
   "sections": [{ "heading": string, "items": [{ "name": string, "formula": string, "condition": string (validity condition or "" ) }] }] (2-5 sections, 2-6 items each),
   "reminders": string[] (2-4 short accuracy reminders about signs/conditions)
 }
-Be concise.`;
+Be concise.
+MATH FORMATTING: write every formula as LaTeX wrapped in $...$ (inline) or $$...$$ (display). Never use markdown bold/italics. Use $ ONLY as a LaTeX delimiter.`;
 
 export const makeFormulaSheet = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => SheetInput.parse(input))
@@ -238,7 +243,8 @@ Respond with a SINGLE JSON object, no markdown:
   }] (4-7 sections, 3-6 blocks each, vary colours and block kinds)
 }
 Block kinds: "point" = bullet idea, "formula" = boxed formula, "box" = key definition, "callout" = important/exam warning, "example" = tiny solved example, "arrow" = a "therefore / leads to" line. "label" is a 1-3 word tag (may be "").
-Keep each text short (one or two lines), lively and student-friendly. No filler.`;
+Keep each text short (one or two lines), lively and student-friendly. No filler.
+MATH FORMATTING: write every mathematical expression as LaTeX wrapped in $...$ (inline) or $$...$$ (display block). Never use markdown bold/italics (**, *, _) anywhere. Use $ ONLY as a LaTeX delimiter; if you must mention money, write it in words (e.g. "50 dollars").`;
 
 export const richNotes = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => NotesInput.parse(input))

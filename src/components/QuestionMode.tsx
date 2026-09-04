@@ -1,3 +1,4 @@
+import { MathText } from "@/components/MathText";
 import { useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import {
@@ -143,7 +144,7 @@ export function QuestionMode() {
               </Badge>
               <h2 className="font-display text-xl font-bold sm:text-2xl">❓ Question</h2>
               <p className="mt-2 text-sm text-primary-foreground/90 sm:text-base">
-                {result.question}
+                <MathText>{result.question}</MathText>
               </p>
             </div>
           </Card>
@@ -159,7 +160,7 @@ export function QuestionMode() {
                 {result.meaning?.map((m, i) => (
                   <li key={i} className="flex gap-3 text-sm leading-relaxed">
                     <span className="mt-1.5 size-2 shrink-0 rounded-full bg-gradient-hero" />
-                    <span>{m}</span>
+                    <span><MathText>{m}</MathText></span>
                   </li>
                 ))}
               </ul>
@@ -172,7 +173,7 @@ export function QuestionMode() {
             </CardHeader>
             <CardContent className="space-y-4">
               {result.approach && (
-                <p className="rounded-xl bg-muted p-3 text-sm">{result.approach}</p>
+                <p className="rounded-xl bg-muted p-3 text-sm"><MathText>{result.approach}</MathText></p>
               )}
               <ol className="space-y-3">
                 {result.steps?.map((s, i) => (
@@ -181,8 +182,8 @@ export function QuestionMode() {
                       {i + 1}
                     </span>
                     <span className="min-w-0 flex-1">
-                      <span className="font-semibold">{s.title}</span>
-                      <span className="mt-0.5 block text-muted-foreground">{s.detail}</span>
+                      <span className="font-semibold"><MathText>{s.title}</MathText></span>
+                      <span className="mt-0.5 block text-muted-foreground"><MathText>{s.detail}</MathText></span>
                       <StepExplain
                         step={`${s.title}: ${s.detail}`}
                         context={`Question: ${result.question}\nApproach: ${result.approach}\nAnswer: ${result.answer}`}
@@ -192,7 +193,7 @@ export function QuestionMode() {
                 ))}
               </ol>
               <p className="flex items-start gap-2 rounded-xl bg-success/10 p-3 text-sm font-semibold">
-                <CheckCircle2 className="mt-0.5 size-4 shrink-0" /> Answer: {result.answer}
+                <CheckCircle2 className="mt-0.5 size-4 shrink-0" /> Answer: <MathText>{result.answer}</MathText>
               </p>
               {result.tips?.length > 0 && (
                 <ul className="space-y-2">
@@ -202,7 +203,7 @@ export function QuestionMode() {
                       className="flex gap-2 rounded-xl bg-accent/50 p-3 text-sm text-accent-foreground"
                     >
                       <Lightbulb className="mt-0.5 size-4 shrink-0" />
-                      {t}
+                      <MathText>{t}</MathText>
                     </li>
                   ))}
                 </ul>
@@ -239,7 +240,7 @@ export function QuestionMode() {
                   {result.hinglish?.map((h, i) => (
                     <li key={i} className="flex gap-3 text-sm leading-relaxed">
                       <span className="mt-1.5 size-2 shrink-0 rounded-full bg-gradient-hero" />
-                      <span>{h}</span>
+                      <span><MathText>{h}</MathText></span>
                     </li>
                   ))}
                 </ul>

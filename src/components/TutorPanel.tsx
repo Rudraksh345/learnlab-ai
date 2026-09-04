@@ -1,3 +1,4 @@
+import { MathText } from "@/components/MathText";
 import { useEffect, useRef, useState } from "react";
 import { Bot, Loader2, Send, User } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
@@ -98,7 +99,7 @@ export function TutorPanel({
                   : "bg-muted text-foreground"
               }`}
             >
-              {m.content}
+              <MathText>{m.content}</MathText>
             </div>
             {m.role === "user" && (
               <div className="mt-1 flex size-7 shrink-0 items-center justify-center rounded-lg bg-secondary text-secondary-foreground">

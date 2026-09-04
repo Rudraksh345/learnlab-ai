@@ -31,6 +31,7 @@ export async function callGateway(
       model: opts.model ?? MODEL,
       messages,
       service_tier: "priority",
+      temperature: 0.2,
       ...(opts.json ? { response_format: { type: "json_object" } } : {}),
     }),
   });

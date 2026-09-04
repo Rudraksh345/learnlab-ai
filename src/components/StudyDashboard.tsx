@@ -1,3 +1,4 @@
+import { MathText } from "@/components/MathText";
 import {
   BookOpen,
   Bot,
@@ -41,7 +42,7 @@ export function StudyDashboard({ pack, onReset }: { pack: StudyPack; onReset: ()
           </Badge>
           <h1 className="font-display text-2xl font-bold sm:text-3xl">{pack.topic}</h1>
           <p className="mt-2 max-w-2xl text-sm text-primary-foreground/85 sm:text-base">
-            {pack.summary}
+            <MathText>{pack.summary}</MathText>
           </p>
           <Button
             variant="secondary"
@@ -95,7 +96,7 @@ export function StudyDashboard({ pack, onReset }: { pack: StudyPack; onReset: ()
                       className="flex gap-3 rounded-xl bg-accent/50 p-3 text-sm text-accent-foreground"
                     >
                       <Lightbulb className="mt-0.5 size-4 shrink-0" />
-                      {p}
+                      <MathText>{p}</MathText>
                     </li>
                   ))}
                 </ul>
@@ -108,10 +109,10 @@ export function StudyDashboard({ pack, onReset }: { pack: StudyPack; onReset: ()
               {pack.concepts?.map((c, i) => (
                 <Card key={i} className="shadow-[var(--shadow-card)]">
                   <CardHeader className="pb-2">
-                    <CardTitle className="font-display text-base text-primary">{c.term}</CardTitle>
+                    <CardTitle className="font-display text-base text-primary"><MathText>{c.term}</MathText></CardTitle>
                   </CardHeader>
                   <CardContent className="text-sm leading-relaxed text-muted-foreground">
-                    {c.definition}
+                    <MathText>{c.definition}</MathText>
                   </CardContent>
                 </Card>
               ))}
@@ -125,23 +126,23 @@ export function StudyDashboard({ pack, onReset }: { pack: StudyPack; onReset: ()
             {pack.formulas?.map((f, i) => (
               <Card key={i} className="shadow-[var(--shadow-card)]">
                 <CardHeader className="pb-3">
-                  <CardTitle className="font-display text-base">{f.name}</CardTitle>
+                  <CardTitle className="font-display text-base"><MathText>{f.name}</MathText></CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="rounded-xl bg-gradient-soft p-4 text-center font-mono text-lg">
-                    {f.latexLike}
+                    <MathText>{f.latexLike}</MathText>
                   </div>
                   <div className="grid gap-2 sm:grid-cols-2">
                     {f.variables?.map((v, vi) => (
                       <div key={vi} className="flex items-start gap-2 text-sm">
                         <span className="rounded-md bg-secondary px-2 py-0.5 font-mono font-semibold text-secondary-foreground">
-                          {v.symbol}
+                          <MathText>{v.symbol}</MathText>
                         </span>
-                        <span className="text-muted-foreground">{v.meaning}</span>
+                        <span className="text-muted-foreground"><MathText>{v.meaning}</MathText></span>
                       </div>
                     ))}
                   </div>
-                  {f.usage && <p className="text-sm text-muted-foreground">💡 {f.usage}</p>}
+                  {f.usage && <p className="text-sm text-muted-foreground">💡 <MathText>{f.usage}</MathText></p>}
                 </CardContent>
               </Card>
             ))}
@@ -152,11 +153,11 @@ export function StudyDashboard({ pack, onReset }: { pack: StudyPack; onReset: ()
               <Card key={i} className="shadow-[var(--shadow-card)]">
                 <CardHeader className="pb-2">
                   <CardTitle className="font-display text-base">
-                    Example {i + 1}: {ex.title}
+                    Example {i + 1}: <MathText>{ex.title}</MathText>
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <p className="rounded-xl bg-muted p-3 text-sm">{ex.problem}</p>
+                  <p className="rounded-xl bg-muted p-3 text-sm"><MathText>{ex.problem}</MathText></p>
                   <ol className="space-y-3">
                     {ex.steps?.map((s, si) => (
                       <li key={si} className="flex gap-3 text-sm leading-relaxed">
@@ -164,7 +165,7 @@ export function StudyDashboard({ pack, onReset }: { pack: StudyPack; onReset: ()
                           {si + 1}
                         </span>
                         <span className="min-w-0 flex-1">
-                          {s}
+                          <MathText>{s}</MathText>
                           <StepExplain
                             step={s}
                             context={`Topic: ${pack.topic}\nProblem: ${ex.problem}\nAnswer: ${ex.answer}`}
@@ -174,7 +175,7 @@ export function StudyDashboard({ pack, onReset }: { pack: StudyPack; onReset: ()
                     ))}
                   </ol>
                   <p className="rounded-xl bg-success/10 p-3 text-sm font-semibold">
-                    ✅ Answer: {ex.answer}
+                    ✅ Answer: <MathText>{ex.answer}</MathText>
                   </p>
                 </CardContent>
               </Card>
