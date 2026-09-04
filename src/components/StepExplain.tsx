@@ -1,3 +1,4 @@
+import { MathText } from "@/components/MathText";
 import { useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { Loader2, Sparkles } from "lucide-react";
@@ -57,7 +58,7 @@ export function StepExplain({ step, context }: Props) {
       </div>
       {text && (
         <p className="mt-2 whitespace-pre-wrap rounded-xl bg-accent/50 p-3 text-sm leading-relaxed text-accent-foreground">
-          {text}
+          <MathText>{text}</MathText>
         </p>
       )}
     </div>

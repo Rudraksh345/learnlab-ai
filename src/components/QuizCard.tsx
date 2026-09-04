@@ -1,3 +1,4 @@
+import { MathText } from "@/components/MathText";
 import { useState } from "react";
 import { Check, RotateCcw, Trophy, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -47,7 +48,7 @@ export function QuizCard({ quiz }: { quiz: QuizQuestion[] }) {
             <CardHeader>
               <CardTitle className="font-display text-base leading-relaxed">
                 <span className="mr-2 text-primary">Q{i + 1}.</span>
-                {q.question}
+                <MathText>{q.question}</MathText>
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">
@@ -73,7 +74,7 @@ export function QuizCard({ quiz }: { quiz: QuizQuestion[] }) {
                     <span className="flex size-6 shrink-0 items-center justify-center rounded-md bg-secondary text-xs font-semibold text-secondary-foreground">
                       {String.fromCharCode(65 + oi)}
                     </span>
-                    <span className="flex-1">{opt}</span>
+                    <span className="flex-1"><MathText>{opt}</MathText></span>
                     {reveal && isCorrect && <Check className="size-4 text-success" />}
                     {reveal && isPicked && !isCorrect && <X className="size-4 text-destructive" />}
                   </button>
@@ -81,7 +82,7 @@ export function QuizCard({ quiz }: { quiz: QuizQuestion[] }) {
               })}
               {picked !== undefined && (
                 <p className="animate-in fade-in slide-in-from-bottom-1 rounded-xl bg-accent/60 p-3 text-sm text-accent-foreground">
-                  {q.explanation}
+                  <MathText>{q.explanation}</MathText>
                 </p>
               )}
             </CardContent>
