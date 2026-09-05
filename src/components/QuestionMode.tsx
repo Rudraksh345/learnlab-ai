@@ -36,29 +36,40 @@ function readAsDataUrl(file: File) {
 
 export function QuestionMode() {
   const solve = useServerFn(solveQuestion);
+  const makeSim = useServerFn(questionSimulation);
   const inputRef = useRef<HTMLInputElement>(null);
   const [question, setQuestion] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<QuestionSolution | null>(null);
+  const [sims, setSims] = useState<Simulation[] | null>(null);
+  const [simLoading, setSimLoading] = useState(false);
   const [hinglish, setHinglish] = useState(false);
 
   const run = async () => {
     setLoading(true);
     setError(null);
+    setSims(null);
     try {
       if (file && file.size > 8 * 1024 * 1024)
         throw new Error("Please upload a file smaller than 8 MB.");
       const dataUrl = file ? await readAsDataUrl(file) : undefined;
-      const res = await solve({
-        data: {
-          question: question.trim() || undefined,
-          fileName: file?.name,
-          mimeType: file?.type || (file ? "image/png" : undefined),
-          dataUrl,
-        },
-      });
+      const payload = {
+        question: question.trim() || undefined,
+        fileName: file?.name,
+        mimeType: file?.type || (file ? "image/png" : undefined),
+        dataUrl,
+      };
+
+      // Fire the visual in parallel so the answer never waits for it.
+      setSimLoading(true);
+      makeSim({ data: payload })
+        .then((r) => setSims(r?.simulations ?? []))
+        .catch(() => setSims([]))
+        .finally(() => setSimLoading(false));
+
+      const res = await solve({ data: payload });
       setResult(res);
       setHinglish(false);
     } catch (e) {
