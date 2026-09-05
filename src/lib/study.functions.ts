@@ -179,6 +179,48 @@ export const solveQuestion = createServerFn({ method: "POST" })
     return parseJsonLoose<QuestionSolution>(raw);
   });
 
+const SimInput = z.object({
+  question: z.string().max(4000).optional(),
+  fileName: z.string().optional(),
+  mimeType: z.string().optional(),
+  dataUrl: z.string().optional(),
+});
+
+/** Runs in parallel with solveQuestion so the answer never waits on the visual. */
+export const questionSimulation = createServerFn({ method: "POST" })
+  .inputValidator((input: unknown) => SimInput.parse(input))
+  .handler(async ({ data }) => {
+    const content: Exclude<ChatMessage["content"], string> = [
+      {
+        type: "text",
+        text: data.question
+          ? `Design one interactive simulation for this mathematics question: ${data.question}`
+          : "Design one interactive simulation for the mathematics question in this attached page.",
+      },
+    ];
+    if (data.dataUrl) {
+      content.push(
+        data.mimeType?.includes("pdf")
+          ? {
+              type: "file",
+              file: { filename: data.fileName ?? "question.pdf", file_data: data.dataUrl },
+            }
+          : { type: "image_url", image_url: { url: data.dataUrl } },
+      );
+    }
+
+    const raw = await callGateway(
+      [
+        { role: "system", content: SIM_PROMPT },
+        { role: "user", content },
+      ],
+      { json: true },
+    );
+    return parseJsonLoose<{ simulations: Simulation[] }>(raw);
+  });
+
+
+
 const StepInput = z.object({
   step: z.string().min(1).max(4000),
   context: z.string().min(1).max(8000),
