@@ -21,8 +21,9 @@ import { StepExplain } from "@/components/StepExplain";
 import { FormulaSheetCard } from "@/components/FormulaSheetCard";
 import { NotesCanvas } from "@/components/NotesCanvas";
 import { TutorPanel } from "@/components/TutorPanel";
-import { solveQuestion } from "@/lib/study.functions";
-import type { QuestionSolution } from "@/lib/study-types";
+import { VoiceExplain } from "@/components/VoiceExplain";
+import { questionSimulation, solveQuestion } from "@/lib/study.functions";
+import type { QuestionSolution, Simulation } from "@/lib/study-types";
 
 function readAsDataUrl(file: File) {
   return new Promise<string>((resolve, reject) => {
@@ -35,29 +36,40 @@ function readAsDataUrl(file: File) {
 
 export function QuestionMode() {
   const solve = useServerFn(solveQuestion);
+  const makeSim = useServerFn(questionSimulation);
   const inputRef = useRef<HTMLInputElement>(null);
   const [question, setQuestion] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<QuestionSolution | null>(null);
+  const [sims, setSims] = useState<Simulation[] | null>(null);
+  const [simLoading, setSimLoading] = useState(false);
   const [hinglish, setHinglish] = useState(false);
 
   const run = async () => {
     setLoading(true);
     setError(null);
+    setSims(null);
     try {
       if (file && file.size > 8 * 1024 * 1024)
         throw new Error("Please upload a file smaller than 8 MB.");
       const dataUrl = file ? await readAsDataUrl(file) : undefined;
-      const res = await solve({
-        data: {
-          question: question.trim() || undefined,
-          fileName: file?.name,
-          mimeType: file?.type || (file ? "image/png" : undefined),
-          dataUrl,
-        },
-      });
+      const payload = {
+        question: question.trim() || undefined,
+        fileName: file?.name,
+        mimeType: file?.type || (file ? "image/png" : undefined),
+        dataUrl,
+      };
+
+      // Fire the visual in parallel so the answer never waits for it.
+      setSimLoading(true);
+      makeSim({ data: payload })
+        .then((r) => setSims(r?.simulations ?? []))
+        .catch(() => setSims([]))
+        .finally(() => setSimLoading(false));
+
+      const res = await solve({ data: payload });
       setResult(res);
       setHinglish(false);
     } catch (e) {
@@ -211,14 +223,34 @@ export function QuestionMode() {
             </CardContent>
           </Card>
 
-          {(result.simulations?.length
-            ? result.simulations
-            : result.simulation
-              ? [result.simulation]
-              : []
+          <VoiceExplain
+            english={[
+              result.question,
+              result.approach,
+              ...(result.steps?.map((s) => `${s.title}. ${s.detail}`) ?? []),
+              `Final answer: ${result.answer}`,
+            ].filter(Boolean)}
+            hinglish={result.hinglish}
+          />
+
+          {(sims?.length
+            ? sims
+            : result.simulations?.length
+              ? result.simulations
+              : result.simulation
+                ? [result.simulation]
+                : []
           ).map((sim, i) => (
             <SimulationCard key={i} sim={sim} />
           ))}
+
+          {simLoading && !sims && (
+            <p className="flex items-center gap-2 rounded-xl bg-muted px-4 py-3 text-sm text-muted-foreground">
+              <Loader2 className="size-4 animate-spin" /> Building an interactive visual for this
+              question…
+            </p>
+          )}
+
 
           <Card className="shadow-[var(--shadow-card)]">
             <CardHeader className="flex flex-row items-center justify-between gap-3 space-y-0">
