@@ -20,6 +20,7 @@ import { NotesCanvas } from "@/components/NotesCanvas";
 import { FormulaSheetCard } from "@/components/FormulaSheetCard";
 import { StepExplain } from "@/components/StepExplain";
 import { TutorPanel } from "@/components/TutorPanel";
+import { VoiceExplain } from "@/components/VoiceExplain";
 import type { StudyPack } from "@/lib/study-types";
 
 const TABS = [
