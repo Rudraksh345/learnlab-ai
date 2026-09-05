@@ -223,14 +223,34 @@ export function QuestionMode() {
             </CardContent>
           </Card>
 
-          {(result.simulations?.length
-            ? result.simulations
-            : result.simulation
-              ? [result.simulation]
-              : []
+          <VoiceExplain
+            english={[
+              result.question,
+              result.approach,
+              ...(result.steps?.map((s) => `${s.title}. ${s.detail}`) ?? []),
+              `Final answer: ${result.answer}`,
+            ].filter(Boolean)}
+            hinglish={result.hinglish}
+          />
+
+          {(sims?.length
+            ? sims
+            : result.simulations?.length
+              ? result.simulations
+              : result.simulation
+                ? [result.simulation]
+                : []
           ).map((sim, i) => (
             <SimulationCard key={i} sim={sim} />
           ))}
+
+          {simLoading && !sims && (
+            <p className="flex items-center gap-2 rounded-xl bg-muted px-4 py-3 text-sm text-muted-foreground">
+              <Loader2 className="size-4 animate-spin" /> Building an interactive visual for this
+              question…
+            </p>
+          )}
+
 
           <Card className="shadow-[var(--shadow-card)]">
             <CardHeader className="flex flex-row items-center justify-between gap-3 space-y-0">
