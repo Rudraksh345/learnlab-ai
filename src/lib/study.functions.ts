@@ -118,20 +118,28 @@ Respond with a SINGLE JSON object, no markdown, matching exactly:
   "approach": string (1-2 sentences: the plan/method),
   "steps": [{ "title": string (short step name), "detail": string (the working, simple math notation) }] (3-6 steps),
   "answer": string (final answer, clearly stated),
-  "simulations": [{ "available": boolean, "mode": "graph"|"vector"|"parametric", "title": string, "description": string, "expression": string, "curves": [{"label": string, "expression": string}], "vectors": [{"label": string, "x": string, "y": string}], "parametric": [{"label": string, "xExpr": string, "yExpr": string}], "tangent": boolean, "area": boolean, "xMin": number, "xMax": number, "xLabel": string, "yLabel": string, "params": [{"key": "a"|"b"|"c", "label": string, "min": number, "max": number, "step": number, "default": number}], "animateParam": "a"|"b"|"c"|null, "insight": string }], "xMin": number, "xMax": number, "xLabel": string, "yLabel": string, "params": [{"key": "a"|"b"|"c", "label": string, "min": number, "max": number, "step": number, "default": number}], "animateParam": "a"|"b"|"c"|null, "insight": string }] (EXACTLY 1 polished simulation designed EXCLUSIVELY for this question),
   "hinglish": string[] (4-7 bullets explaining BOTH the concept and the solution naturally in Hinglish - Hindi in Roman script mixed with English maths terms),
   "tips": string[] (2-4 exam tips or common mistakes)
 }
-SIMULATION RULES — first identify the exact mathematical topic, then build EXACTLY ONE polished INTERACTIVE simulation exclusive to it (never a generic textbook graph). It must let the student manipulate the maths and see live cause-and-effect.
-Pick the "mode" that truly fits the detected topic:
-- "vector" for vectors / vector algebra / forces / complex numbers as arrows / dot & cross products: fill "vectors" with 1-3 entries {"label","x","y"} whose x,y are expressions in a,b,c (e.g. {"label":"v","x":"a","y":"b"}). The student can DRAG the arrow tip, which live-updates the a,b sliders, magnitudes, angle, dot and cross products. Set xMin/xMax to a symmetric range like -6/6.
-- "parametric" for curves, geometry, circles/ellipses, projectile paths, polar-like curves, Lissajous, phase portraits: fill "parametric" with 1-3 entries {"label","xExpr","yExpr"} in terms of x (used as the parameter t) and a,b,c; xMin/xMax are the t-range.
-- "graph" (default) for functions, calculus, ODE solutions, transforms, probability densities, numerical methods: use "curves" (1-3) plus "expression". For calculus set "tangent": true to show a draggable moving tangent line with live slope; for integrals/areas/probability set "area": true to shade and compute the live area from 0 to the dragged point.
-Always: the probe point is DRAGGABLE directly on the canvas, 2-3 sliders must genuinely change the mathematics, and "animateParam" is the parameter most worth animating (or null).
-- Every expression MUST be valid JavaScript math using only x, a, b, c, numbers, + - * / ( ) and the bare functions sin, cos, tan, sinh, cosh, tanh, asin, acos, atan, exp, log, sqrt, cbrt, abs, sign, pow, min, max (no "Math." prefix, no ** operator, expand series manually).
-- available=true, a distinct title, and an "insight" that explains WHY the visual behaves that way.
-Be concise: short strings, no filler, so the answer arrives fast.
+ACCURACY CHECK (do this silently before writing the JSON): solve the question, then re-verify each formula, arithmetic sign, power, fraction and the final answer by substitution or a quick reverse check; if a check fails, redo it. Only output verified working.
+Be concise: short strings, no filler, so the answer arrives fast. Do NOT include any simulation in this response.
 MATH FORMATTING: write every mathematical expression as LaTeX wrapped in $...$ (inline) or $$...$$ (display block). Never use markdown bold/italics (**, *, _) anywhere. Use $ ONLY as a LaTeX delimiter; if you must mention money, write it in words (e.g. "50 dollars").`;
+
+const SIM_RULES = `SIMULATION RULES — first identify the exact mathematical topic, then build EXACTLY ONE polished INTERACTIVE simulation exclusive to it (never a generic textbook graph). It must let the student manipulate the maths and see live cause-and-effect.
+Pick the "mode" that truly fits the detected topic:
+- "vector" for vectors / vector algebra / forces / complex numbers as arrows / dot & cross products: fill "vectors" with 1-3 entries {"label","x","y"} whose x,y are expressions in a,b,c. The student can DRAG the arrow tip, which live-updates the a,b sliders, magnitudes, angle, dot and cross products. Use a symmetric range like -6/6.
+- "parametric" for curves, geometry, circles/ellipses, projectile paths, polar-like curves, Lissajous, phase portraits: fill "parametric" with 1-3 entries {"label","xExpr","yExpr"} in terms of x (used as parameter t) and a,b,c; xMin/xMax are the t-range.
+- "graph" (default) for functions, calculus, ODE solutions, transforms, probability densities, numerical methods: use "curves" (1-3) plus "expression". For calculus set "tangent": true (draggable tangent with live slope); for integrals/areas/probability set "area": true.
+If the topic genuinely cannot be manipulated (pure definitions, proofs, tables), still return one clear labelled DIAGRAM-style visual (parametric or graph) that pictures the idea, with a helpful insight — never a random unrelated graph.
+Always: the probe point is DRAGGABLE, 2-3 sliders must genuinely change the mathematics, and "animateParam" is the parameter most worth animating (or null).
+- Every expression MUST be valid JavaScript math using only x, a, b, c, numbers, + - * / ( ) and the bare functions sin, cos, tan, sinh, cosh, tanh, asin, acos, atan, exp, log, sqrt, cbrt, abs, sign, pow, min, max (no "Math." prefix, no ** operator, expand series manually).
+- available=true, a distinct title, and an "insight" that explains WHY the visual behaves that way.`;
+
+const SIM_PROMPT = `You are masterMath, an Engineering Mathematics professor who designs interactive visual labs.
+Respond with a SINGLE JSON object, no markdown:
+{ "simulations": [{ "available": boolean, "mode": "graph"|"vector"|"parametric", "title": string, "description": string, "expression": string, "curves": [{"label": string, "expression": string}], "vectors": [{"label": string, "x": string, "y": string}], "parametric": [{"label": string, "xExpr": string, "yExpr": string}], "tangent": boolean, "area": boolean, "xMin": number, "xMax": number, "xLabel": string, "yLabel": string, "params": [{"key": "a"|"b"|"c", "label": string, "min": number, "max": number, "step": number, "default": number}], "animateParam": "a"|"b"|"c"|null, "insight": string }] (EXACTLY 1) }
+${SIM_RULES}
+Be concise.`;
 
 export const solveQuestion = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => SolveInput.parse(input))
