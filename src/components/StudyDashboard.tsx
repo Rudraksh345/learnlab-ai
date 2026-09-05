@@ -56,6 +56,19 @@ export function StudyDashboard({ pack, onReset }: { pack: StudyPack; onReset: ()
         </div>
       </Card>
 
+      <VoiceExplain
+        english={[
+          pack.topic,
+          pack.summary,
+          ...(pack.examPoints ?? []),
+          ...(pack.examples?.flatMap((ex) => [
+            `Example: ${ex.problem}`,
+            ...(ex.steps ?? []),
+            `Answer: ${ex.answer}`,
+          ]) ?? []),
+        ].filter(Boolean)}
+      />
+
       <Tabs defaultValue="notes" className="w-full">
         <div className="-mx-1 overflow-x-auto px-1 pb-1">
           <TabsList className="h-auto w-max gap-1 rounded-2xl bg-card p-1.5 shadow-[var(--shadow-card)]">
