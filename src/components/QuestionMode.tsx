@@ -21,8 +21,9 @@ import { StepExplain } from "@/components/StepExplain";
 import { FormulaSheetCard } from "@/components/FormulaSheetCard";
 import { NotesCanvas } from "@/components/NotesCanvas";
 import { TutorPanel } from "@/components/TutorPanel";
-import { solveQuestion } from "@/lib/study.functions";
-import type { QuestionSolution } from "@/lib/study-types";
+import { VoiceExplain } from "@/components/VoiceExplain";
+import { questionSimulation, solveQuestion } from "@/lib/study.functions";
+import type { QuestionSolution, Simulation } from "@/lib/study-types";
 
 function readAsDataUrl(file: File) {
   return new Promise<string>((resolve, reject) => {
