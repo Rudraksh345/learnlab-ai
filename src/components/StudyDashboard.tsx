@@ -20,6 +20,7 @@ import { NotesCanvas } from "@/components/NotesCanvas";
 import { FormulaSheetCard } from "@/components/FormulaSheetCard";
 import { StepExplain } from "@/components/StepExplain";
 import { TutorPanel } from "@/components/TutorPanel";
+import { VoiceExplain } from "@/components/VoiceExplain";
 import type { StudyPack } from "@/lib/study-types";
 
 const TABS = [
@@ -54,6 +55,19 @@ export function StudyDashboard({ pack, onReset }: { pack: StudyPack; onReset: ()
           </Button>
         </div>
       </Card>
+
+      <VoiceExplain
+        english={[
+          pack.topic,
+          pack.summary,
+          ...(pack.examPoints ?? []),
+          ...(pack.examples?.flatMap((ex) => [
+            `Example: ${ex.problem}`,
+            ...(ex.steps ?? []),
+            `Answer: ${ex.answer}`,
+          ]) ?? []),
+        ].filter(Boolean)}
+      />
 
       <Tabs defaultValue="notes" className="w-full">
         <div className="-mx-1 overflow-x-auto px-1 pb-1">
